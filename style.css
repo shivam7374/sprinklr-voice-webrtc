@@ -1,0 +1,74 @@
+body{
+    font-family: helvetica, arial, sans-serif;
+	font-size: 16px;
+	
+}
+.heading_peer {
+    font-size: 24pt;
+    font-family: "Trebuchet MS";
+    color: #009DDD;  
+    border-bottom: 2px dashed #E3052D; 
+    font-style: italic;
+    }
+
+    button{
+        height:10%;
+        width:20%;
+        border:none;
+        background:#2B2D2F;
+        position:relative;
+        border-radius:5px;
+        color:#009DDD;
+        font-size:1.7em;
+        font-weight:500;
+        overflow:hidden;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+      }
+      button:hover{
+        background:#009DDD;
+        color:#2B2D2F;
+      }
+      
+input[type=text]{
+    width:100%;
+    border:2px solid #aaa;
+    border-radius:4px;
+    margin:8px 0;
+    outline:none;
+    padding:8px;
+    box-sizing:border-box;
+    transition:.3s;
+  }
+  
+  input[type=text]:focus{
+    border-color:dodgerBlue;
+    box-shadow:0 0 8px 0 dodgerBlue;
+  }
+
+  #chat {
+    display: flex;
+    margin: 10px 80px;
+    height: 50vh;
+    justify-content: center;
+}
+
+.video-box {
+    position: relative;
+    margin: 5px 25px;
+    width: 100%;
+    background-color: rgba(50, 50, 50, 0.75);
+    border: 10px solid darkcyan;
+    border-radius: 25px;
+}
+
+.video-screen {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    margin: auto;
+    object-fit: cover;
+    border-radius: 25px;
+}

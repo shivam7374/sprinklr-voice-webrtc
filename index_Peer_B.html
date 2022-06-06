@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <title>Receiver_Guy</title>
+    <link rel="stylesheet"
+          href="./style.css"
+          type="text/css">
+          <link rel="shortcut icon" href="#">
+
+</head>
+
+<body>
+    <center>
+        <h1><strong>Peer B or Reciever</strong></h1>
+    </center>
+
+    <div id="description">
+                  Local IP Address generated on offer ( Generated once the Remote IP address of Peer B is set): 
+<input type="text" id="local_address" placeholder="Local Address to appears here ">
+<br><br>
+Enter Remote IP address of the offer (Enter local address of Peer A ): 
+<input type="text" id="remote_address" placeholder="Remote Address to be entered here ">
+
+    </div>
+
+    <div id="upper-buttons">
+        <button class="offer_entered">Submit Offer</button>
+    </div>
+
+    <div id="chat">
+        <div class="video-box">
+            <video class="video-screen "
+                   id="outgoing"
+                   autoplay
+                   muted
+                   alt="load error"></video>
+        </div>
+        <div class="video-box">
+            <video class="video-screen "
+                   id="incoming"
+                   autoplay
+                   alt="load error"></video>
+        </div>
+    </div>
+    <br><br>
+    <div class="heading_peer peerA">Chat Box</div>
+  <input type="text" id="chat_text" placeholder="Enter Message to be send to PEER A">
+  <button class="send_response">Send</button>
+  
+  <div class="chat">
+  </div>
+  
+<script src="./script_Peer_B.js"></script>
+</body>
+
+</html>

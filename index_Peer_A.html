@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <title>Sender_Guy</title>
+    <link rel="stylesheet"
+          href="./style.css"
+          type="text/css">
+          <link rel="shortcut icon" href="#">
+
+</head>
+
+<body>
+    <center>
+        <h1><strong>Peer A or Sender</strong></h1>
+    </center>
+
+    <div id="description">
+        Local IP address (Enter this in remote address of Peer B): 
+        <input type="text" id="local_address" placeholder="Local Address to appears here ">
+        <div id="upper-buttons">
+            <button class="generate_offer">Generate Offer</button>
+        </div>
+    <br><br>
+        Remote IP to be entered here (Enter the local address of Peer B): 
+        <input type="text" id="remote_address" placeholder="Remote Address to be entered here ">
+    </div>
+
+    <div id="upper-buttons">
+        <button class="accept_answer">Accept Answer</button>
+    </div>
+
+    <div id="chat">
+        <div class="video-box">
+            <video class="video-screen "
+                   id="outgoing"
+                   autoplay
+                   muted
+                   alt="load error"></video>
+        </div>
+        <div class="video-box">
+            <video class="video-screen "
+                   id="incoming"
+                   autoplay
+                   alt="load error"></video>
+        </div>
+    </div>
+    <br><br>
+<div class="heading_peer peerA">Chat Box</div>
+<input type="text" id="chat_text" placeholder="Enter Message to be send to PEER B ">
+<button class="send_response">Send</button>
+
+<div class="chat">
+</div>
+<div id="log"></div>
+
+<script src="./script_Peer_A.js"></script>
+</body>
+
+</html>
