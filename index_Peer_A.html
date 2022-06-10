@@ -17,8 +17,18 @@
     <center>
         <h1><strong>Peer A or Sender</strong></h1>
     </center>
-
-    <div id="description">
+    <div>
+        <button class="js-button default-button" id="button1" data-description="Using STUN Server" onclick="useStunServer(this)">
+        Select STUN Server
+        </button>
+        <button class="js-button default-button" id="button2" data-description="Using TURN Server" onclick="useTurnServer(this)">
+          Select TURN Server
+        </button>
+    </div>  
+      <div id="js-description" class="description">
+      </div>
+      <br>
+          <div id="description">
         Local IP address (Enter this in remote address of Peer B): 
         <input type="text" id="local_address" placeholder="Local Address to appears here ">
         <div id="upper-buttons">
@@ -58,6 +68,7 @@
 <div id="log"></div>
 
 <script src="./script_Peer_A.js"></script>
+<script src="./script_webrtc.js"></script>
 </body>
 
 </html>

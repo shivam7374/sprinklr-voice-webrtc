@@ -13,7 +13,7 @@ body{
 
     button{
         height:10%;
-        width:20%;
+        width: fit-content;
         border:none;
         background:#2B2D2F;
         position:relative;
@@ -72,3 +72,17 @@ input[type=text]{
     object-fit: cover;
     border-radius: 25px;
 }
+
+.active-button{
+  background:009DDD;
+  color:#fff;
+}
+.description{
+  margin-top:20px;
+}
+
+#button1 , #button2 {
+  display:inline-block;
+  /* additional code */
+
+  }
