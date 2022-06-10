@@ -17,7 +17,18 @@
     <center>
         <h1><strong>Peer B or Reciever</strong></h1>
     </center>
-
+    
+    <div>
+        <button class="js-button default-button" id="button1" data-description="Using STUN Server" onclick="useStunServer(this)">
+            Select STUN Server
+        </button>
+        <button class="js-button default-button" id="button2" data-description="Using TURN Server" onclick="useTurnServer(this)">
+          Select TURN Server
+        </button>
+    </div>  
+      <div id="js-description" class="description">
+      </div>
+      <br>
     <div id="description">
                   Local IP Address generated on offer ( Generated once the Remote IP address of Peer B is set): 
 <input type="text" id="local_address" placeholder="Local Address to appears here ">
@@ -55,6 +66,7 @@ Enter Remote IP address of the offer (Enter local address of Peer A ):
   </div>
   
 <script src="./script_Peer_B.js"></script>
+<script src="./script_webrtc.js"></script>
 </body>
 
 </html>

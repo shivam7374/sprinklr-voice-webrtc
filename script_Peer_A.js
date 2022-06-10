@@ -5,13 +5,7 @@ const outBox = document.querySelector("#outgoing");
 const generateOffer = document.querySelector(".generate_offer");
 const confirmButton = document.querySelector(".accept_answer");
 
-const configuration = {
-  iceServers: [
-    {
-      urls: "stun:stun.l.google.com:19302",
-    },
-  ],
-};
+var configuration;
 const localConnection = new RTCPeerConnection(configuration);
 
 // adding event listeners for icecandidate
@@ -110,3 +104,39 @@ document.querySelector(".send_response").addEventListener("click", async () => {
   document.querySelector(".chat").appendChild(text);
   sendChannel.send(response);
 });
+function giveDescription(elem) {
+  var x = document.getElementById("js-description");
+  var description = elem.getAttribute("data-description");
+  x.innerHTML = description;
+
+  var button = document.getElementsByClassName("js-button");
+
+  for (var i = 0; i < button.length; i++) {
+    button[i].classList.remove("active-button");
+  }
+
+  elem.classList.add("active-button");
+}
+function useStunServer(elem) {
+  giveDescription(elem);
+  configuration = {
+    iceServers: [
+      {
+        urls: "stun:stun.l.google.com:19302",
+      },
+    ],
+  };
+}
+
+function useTurnServer(elem) {
+  giveDescription(elem);
+  configuration = {
+    iceServers: [
+      {
+        urls: "turn:openrelay.metered.ca:80",
+        username: "openrelayproject",
+        credential: "openrelayproject",
+      },
+    ],
+  };
+}
