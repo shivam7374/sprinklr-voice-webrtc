@@ -1,3 +1,5 @@
+import { webRTC_dashboard } from "./script_webrtc.js";
+
 const offerBox = document.querySelector("#local_address");
 const answerBox = document.querySelector("#remote_address");
 const inBox = document.querySelector("#incoming");
@@ -5,7 +7,18 @@ const outBox = document.querySelector("#outgoing");
 const generateOffer = document.querySelector(".generate_offer");
 const confirmButton = document.querySelector(".accept_answer");
 
-var configuration;
+var configuration = {
+  iceServers: [
+    {
+      urls: "stun:stun.l.google.com:19302",
+    },
+    // {
+    //   urls: "turn:openrelay.metered.ca:80",
+    //   username: "openrelayproject",
+    //   credential: "openrelayproject",
+    // },
+  ],
+};
 const localConnection = new RTCPeerConnection(configuration);
 
 // adding event listeners for icecandidate
@@ -25,16 +38,19 @@ localConnection.addEventListener("icecandidate", (event) => {
 
 // creating the local videochannel
 const constraint = {
-  audio: false,
+  audio: true,
   video: true,
 };
 navigator.mediaDevices
   .getUserMedia(constraint)
   .then((stream) => {
     outBox.srcObject = stream;
+    // console.log(stream);
     stream.getTracks().forEach((track) => {
       localConnection.addTrack(track, stream);
     });
+    console.log("Stream ID : ");
+    console.log(stream.id);
   })
   .catch((err) => {
     console.log(err);
@@ -45,17 +61,30 @@ navigator.mediaDevices
 localConnection.addEventListener("track", async (event) => {
   console.log("Sender: media channel opened");
   const [remoteStream] = event.streams;
+  console.log(event.streams);
   inBox.srcObject = remoteStream;
 });
 const sendChannel = localConnection.createDataChannel("sendChannel");
 console.log("channel made");
-sendChannel.onmessage = (e) =>
-  console.log("Message Recieved From Device B : " + e.data);
+
+sendChannel.onmessage = (e) => {
+  // console.log("Message Recieved From Device B : " + e.data);
+  let chatBox = document.querySelector(".chat");
+  chatBox.innerHTML += `Message Received From Device B : ${e.data}` + "<br />";
+};
+
 sendChannel.onopen = (e) => {
-  console.log("Communication Established Now you can Chat !!!");
+  // console.log("Communication Established Now you can Chat !!!");
+  let chatBox = document.querySelector(".chat");
+  chatBox.innerHTML += "Communication Established Now you can Chat !!! <br />";
   document.querySelector(".send_response").disabled = false;
 };
-sendChannel.onclose = (e) => console.log("closed!!!!!!");
+
+sendChannel.onclose = (e) => {
+  // console.log("closed!!!!!!");
+  let chatBox = document.querySelector(".chat");
+  chatBox.innerHTML += "closed!!!!!!";
+};
 
 generateOffer.onclick = (event) => {
   // creating an offer for the new datachannel
@@ -84,18 +113,20 @@ confirmButton.onclick = (event) => {
   });
 };
 
-(function () {
-  var old = console.log;
-  var logger = document.querySelector(".chat");
-  console.log = function (message) {
-    if (typeof message == "object") {
-      logger.innerHTML +=
-        (JSON && JSON.stringify ? JSON.stringify(message) : message) + "<br />";
-    } else {
-      logger.innerHTML += message + "<br />";
-    }
-  };
-})();
+// (function () {
+// 	var old = console.log;
+// 	var logger = document.querySelector(".chat");
+// 	console.log = function (message) {
+// 		if (typeof message == "object") {
+// 			logger.innerHTML +=
+// 				(JSON && JSON.stringify ? JSON.stringify(message) : message) +
+// 				"<br />";
+// 		} else {
+// 			logger.innerHTML += message + "<br />";
+// 		}
+// 	};
+// })();
+
 document.querySelector(".send_response").addEventListener("click", async () => {
   const response = document.getElementById("chat_text").value;
   const text = document.createElement("div");
@@ -104,39 +135,58 @@ document.querySelector(".send_response").addEventListener("click", async () => {
   document.querySelector(".chat").appendChild(text);
   sendChannel.send(response);
 });
-function giveDescription(elem) {
-  var x = document.getElementById("js-description");
-  var description = elem.getAttribute("data-description");
-  x.innerHTML = description;
 
-  var button = document.getElementsByClassName("js-button");
+// send message on hitting enter
+document
+  .getElementById("chat_text")
+  .addEventListener("keypress", async (event) => {
+    if (event.key == "Enter") {
+      const response = document.getElementById("chat_text").value;
+      const text = document.createElement("div");
+      text.innerHTML =
+        "Message Sent By You : " + document.getElementById("chat_text").value;
+      document.querySelector(".chat").appendChild(text);
+      sendChannel.send(response);
+    }
+  });
 
-  for (var i = 0; i < button.length; i++) {
-    button[i].classList.remove("active-button");
-  }
+// function giveDescription(elem) {
+//   var x = document.getElementById("js-description");
+//   var description = elem.getAttribute("data-description");
+//   x.innerHTML = description;
 
-  elem.classList.add("active-button");
-}
-function useStunServer(elem) {
-  giveDescription(elem);
-  configuration = {
-    iceServers: [
-      {
-        urls: "stun:stun.l.google.com:19302",
-      },
-    ],
-  };
-}
+//   var button = document.getElementsByClassName("js-button");
 
-function useTurnServer(elem) {
-  giveDescription(elem);
-  configuration = {
-    iceServers: [
-      {
-        urls: "turn:openrelay.metered.ca:80",
-        username: "openrelayproject",
-        credential: "openrelayproject",
-      },
-    ],
-  };
-}
+//   for (var i = 0; i < button.length; i++) {
+//     button[i].classList.remove("active-button");
+//   }
+
+//   elem.classList.add("active-button");
+// }
+// function useStunServer(elem) {
+//   giveDescription(elem);
+//   configuration = {
+//     iceServers: [
+//       {
+//         urls: "stun:stun.l.google.com:19302",
+//       },
+//     ],
+//   };
+// }
+
+// function useTurnServer(elem) {
+//   giveDescription(elem);
+//   configuration = {
+//     iceServers: [
+//       {
+//         urls: "turn:openrelay.metered.ca:80",
+//         username: "openrelayproject",
+//         credential: "openrelayproject",
+//       },
+//     ],
+//   };
+// }
+
+webRTC_dashboard();
+
+export { localConnection };
