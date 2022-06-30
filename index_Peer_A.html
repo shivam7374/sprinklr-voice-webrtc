@@ -7,41 +7,20 @@
 		<link rel="stylesheet" href="./style.css" type="text/css" />
 		<link rel="shortcut icon" href="#" />
 		<script type="module" src="./script_Peer_A.js"></script>
-		<!-- <script type="module" src="./script_webrtc.js"></script> -->
-		<script type="module" src="./test_analysis1.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css"
+		/>
+		<script type="module" src="./test.js"></script>
 	</head>
 
 	<body>
-		<center>
-			<h1><strong>Peer A or Sender</strong></h1>
-		</center>
-		<!-- <div>
-			<button
-				class="js-button default-button"
-				id="button1"
-				data-description="Using STUN Server"
-				onclick="useStunServer(this)"
-			>
-				Select STUN Server
-			</button>
-			<button
-				class="js-button default-button"
-				id="button2"
-				data-description="Using TURN Server"
-				onclick="useTurnServer(this)"
-			>
-				Select TURN Server
-			</button>
-		</div>
-		<div id="js-description" class="description"></div>
-		<br /> -->
+		<h1><strong>Peer A or Sender</strong></h1>
 		<div id="description">
 			Local IP address (Enter this in remote address of Peer B):
-			<input
-				type="text"
-				id="local_address"
-				placeholder="Local Address to appears here "
-			/>
+			<input type="text" id="local_address" placeholder="Local Address to appears here " />
 			<div id="upper-buttons">
 				<button class="generate_offer">Generate Offer</button>
 			</div>
@@ -60,33 +39,18 @@
 
 		<div id="chat">
 			<div class="video-box">
-				<video
-					class="video-screen"
-					id="outgoing"
-					autoplay
-					muted
-					alt="load error"
-				></video>
+				<video class="video-screen" id="outgoing" autoplay muted alt="load error"></video>
 			</div>
 			<div class="video-box">
-				<video
-					class="video-screen"
-					id="incoming"
-					autoplay
-					alt="load error"
-				></video>
+				<video class="video-screen" id="incoming" autoplay alt="load error"></video>
 			</div>
 		</div>
 		<br /><br />
 		<div class="heading_peer peerA">Chat Box</div>
-		<input
-			type="text"
-			id="chat_text"
-			placeholder="Enter Message to be send to PEER B "
-		/>
+		<input type="text" id="chat_text" placeholder="Enter Message to be send to PEER B " />
 		<button class="send_response">Send</button>
 
 		<div class="chat"></div>
-		<div id="log"></div>
+		<div class="stats-box"></div>
 	</body>
 </html>
