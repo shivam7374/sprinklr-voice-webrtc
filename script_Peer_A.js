@@ -1,6 +1,3 @@
-// import { webRTC_dashboard } from "./script_webrtc.js";
-// import { instance1 } from "../sprinklr-monitor-webrtc/MonitorWebRTC.js";
-// import { instance1 } from "../sprinklr-monitor-webrtc/test/test.js";
 const offerBox = document.querySelector("#local_address");
 const answerBox = document.querySelector("#remote_address");
 const inBox = document.querySelector("#incoming");
@@ -88,7 +85,7 @@ sendChannel.onclose = (e) => {
 	chatBox.innerHTML += "closed!!!!!!";
 };
 
-generateOffer.onclick = (event) => {
+generateOffer.onclick = () => {
 	// creating an offer for the new datachannel
 
 	localConnection
@@ -100,7 +97,7 @@ generateOffer.onclick = (event) => {
 			// console.log("Sender: offer initiated");
 		});
 };
-confirmButton.onclick = (event) => {
+confirmButton.onclick = () => {
 	const { description, icecandidates } = JSON.parse(answerBox.value);
 	// answerBox.setAttribute("readonly", "true");
 
@@ -184,7 +181,73 @@ document.getElementById("chat_text").addEventListener("keypress", async (event) 
 //     ],
 //   };
 // }
+// import { localConnection } from "./script_Peer_A.js";
+// import { MonitorWebRTC } from "../sprinklr-monitor-webrtc/build/index.js";
+let Monitor = require("../sprinklr-monitor-webrtc/build/index");
+let CONFIGURABLE_PARAMETERS = {
+	SAMPLING_TIME_PERIOD: 1000,
+	REPORT_MAX_LENGTH: 6,
+	ANALYSIS_REPORT_LENGTH: 6,
+	EVENT_EMIT_TIME_PERIOD: 3000,
+	STRIKES_THRESHOLD: 3,
+};
+// creating new MonitorWebRTC instance
+let monitor = new Monitor.MonitorWebRTCClass.MonitorWebRTC(
+	localConnection,
+	CONFIGURABLE_PARAMETERS
+);
+monitor.eventEmitter.on("LOW_AUDIO", function (text) {
+	notifyInfo("Info ", "Low Audio");
+});
+monitor.eventEmitter.on("LOW_PACKETS_SENT", function (text) {
+	notifyInfo("Info ", "Low Packets Sent");
+});
+monitor.eventEmitter.on("HIGH_RETRANSMITTED_PACKETS_SENT", function (text) {
+	notifyInfo("Info ", "High Retransmitted Packets Sent");
+});
+monitor.eventEmitter.on("HIGH_INBOUND_PACKET_LOSS", function (text) {
+	notifyInfo("Info ", "High Inbound Packet Loss");
+});
+monitor.eventEmitter.on("HIGH_REMOTE_INBOUND_PACKET_LOSS", function (text) {
+	notifyInfo("Info ", "High Remote Inbound Packet Loss");
+});
+monitor.eventEmitter.on("HIGH_JITTER", function (text) {
+	notifyInfo("Info ", "High Jitter");
+});
+monitor.eventEmitter.on("HIGH_ROUND_TRIP_TIME", function (text) {
+	notifyInfo("Info ", "High Round Trip Time");
+});
+monitor.eventEmitter.on("LOW_MOS_VALUE", function (text) {
+	notifyInfo("Info ", "Low MOS Value");
+});
+monitor.eventEmitter.on("CONNECTION_PROBLEM", function (text) {
+	notifyWarning("Warning !!!", "Connection Problem");
+});
+monitor.eventEmitter.on("CONNECTED", function (text) {
+	notifySuccess("Sucess !!! ", "Connection Established");
+});
+monitor.eventEmitter.on("NO_CONNECTION", function (text) {
+	notifyError("ALERT !!!", "No Connection");
+});
+monitor.eventEmitter.on("SLOW_CONNECTION", function (text) {
+	notifyInfo("Slow Connection", "Your internet is slow :(");
+});
+// Toastr
+function notifyInfo(title, msg) {
+	// Display an info toast with no title
+	toastr.info(msg, title, { timeOut: 1500 });
+}
+function notifySuccess(title, msg) {
+	// Display a success toast with no title
+	toastr.success(msg, title, { timeOut: 2500 });
+}
+function notifyWarning(title, msg) {
+	// Display a warning toast with no title
+	toastr.warning(msg, title, { timeOut: 5000 });
+}
+function notifyError(title, msg) {
+	// Display a warning toast with no title
+	toastr.error(msg, title, { timeOut: 0, extendedTimeOut: 0 });
+}
 
-// webRTC_dashboard();
-
-export { localConnection };
+// export { localConnection };

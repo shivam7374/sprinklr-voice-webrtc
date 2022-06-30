@@ -9,42 +9,42 @@ let CONFIGURABLE_PARAMETERS = {
 };
 // creating new MonitorWebRTC instance
 let monitor = new MonitorWebRTC(localConnection, CONFIGURABLE_PARAMETERS);
-monitor.eventEmitter.on("LOW_AUDIO", function (text) {
-	notifyInfo("Info ", "Low Audio");
-});
-monitor.eventEmitter.on("LOW_PACKETS_SENT", function (text) {
-	notifyInfo("Info ", "Low Packets Sent");
-});
-monitor.eventEmitter.on("HIGH_RETRANSMITTED_PACKETS_SENT", function (text) {
-	notifyInfo("Info ", "High Retransmitted Packets Sent");
-});
-monitor.eventEmitter.on("HIGH_INBOUND_PACKET_LOSS", function (text) {
-	notifyInfo("Info ", "High Inbound Packet Loss");
-});
-monitor.eventEmitter.on("HIGH_REMOTE_INBOUND_PACKET_LOSS", function (text) {
-	notifyInfo("Info ", "High Remote Inbound Packet Loss");
-});
-monitor.eventEmitter.on("HIGH_JITTER", function (text) {
-	notifyInfo("Info ", "High Jitter");
-});
-monitor.eventEmitter.on("HIGH_ROUND_TRIP_TIME", function (text) {
-	notifyInfo("Info ", "High Round Trip Time");
-});
-monitor.eventEmitter.on("LOW_MOS_VALUE", function (text) {
-	notifyInfo("Info ", "Low MOS Value");
-});
-monitor.eventEmitter.on("CONNECTION_PROBLEM", function (text) {
-	notifyWarning("Warning !!!", "Connection Problem");
-});
-monitor.eventEmitter.on("CONNECTED", function (text) {
-	notifySuccess("Sucess !!! ", "Connection Established");
-});
-monitor.eventEmitter.on("NO_CONNECTION", function (text) {
-	notifyError("ALERT !!!", "No Connection");
-});
-monitor.eventEmitter.on("SLOW_CONNECTION", function (text) {
-	notifyInfo("Slow Connection", "Your internet is slow :(");
-});
+// monitor.eventEmitter.on("LOW_AUDIO", function (text) {
+// 	notifyInfo("Info ", "Low Audio");
+// });
+// monitor.eventEmitter.on("LOW_PACKETS_SENT", function (text) {
+// 	notifyInfo("Info ", "Low Packets Sent");
+// });
+// monitor.eventEmitter.on("HIGH_RETRANSMITTED_PACKETS_SENT", function (text) {
+// 	notifyInfo("Info ", "High Retransmitted Packets Sent");
+// });
+// monitor.eventEmitter.on("HIGH_INBOUND_PACKET_LOSS", function (text) {
+// 	notifyInfo("Info ", "High Inbound Packet Loss");
+// });
+// monitor.eventEmitter.on("HIGH_REMOTE_INBOUND_PACKET_LOSS", function (text) {
+// 	notifyInfo("Info ", "High Remote Inbound Packet Loss");
+// });
+// monitor.eventEmitter.on("HIGH_JITTER", function (text) {
+// 	notifyInfo("Info ", "High Jitter");
+// });
+// monitor.eventEmitter.on("HIGH_ROUND_TRIP_TIME", function (text) {
+// 	notifyInfo("Info ", "High Round Trip Time");
+// });
+// monitor.eventEmitter.on("LOW_MOS_VALUE", function (text) {
+// 	notifyInfo("Info ", "Low MOS Value");
+// });
+// monitor.eventEmitter.on("CONNECTION_PROBLEM", function (text) {
+// 	notifyWarning("Warning !!!", "Connection Problem");
+// });
+// monitor.eventEmitter.on("CONNECTED", function (text) {
+// 	notifySuccess("Sucess !!! ", "Connection Established");
+// });
+// monitor.eventEmitter.on("NO_CONNECTION", function (text) {
+// 	notifyError("ALERT !!!", "No Connection");
+// });
+// monitor.eventEmitter.on("SLOW_CONNECTION", function (text) {
+// 	notifyInfo("Slow Connection", "Your internet is slow :(");
+// });
 // Toastr
 function notifyInfo(title, msg) {
 	// Display an info toast with no title

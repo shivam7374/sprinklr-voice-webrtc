@@ -1,0 +1,29 @@
+{
+	"name": "voice-webrtc",
+	"version": "1.0.0",
+	"description": "monitors the peer to peer connection",
+	"main": "script_Peer_A.js",
+	"type": "commonjs",
+	"directories": {
+		"test": "test"
+	},
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"author": "",
+	"contributors": [
+		{
+			"name": "Shivam Singla"
+		},
+		{
+			"name": "Sanket Ranade"
+		}
+	],
+	"license": "ISC",
+	"dependencies": {
+		"typescript": "^4.7.4"
+	},
+	"devDependencies": {
+		"@types/node": "^18.0.0"
+	}
+}
