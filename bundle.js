@@ -1,38 +1,15 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-// import {
-// 	DATA_TYPES,
-// 	AUDIO_THRESHOLD,
-// 	JITTER_THRESHOLD,
-//  RTT_THRESHOLD,
-// 	PACKETS_LOST_PERCENTAGE_THRESHOLD,
-// 	BEING_PROCESSED,
-// 	EVENT,
-// 	PACKETS_SENT_OUTBOUND_THRESHOLD,
-// 	RETRANSMITTED_PACKETS_SENT_OUTBOUND_THRESHOLD,
-// 	DEFAULT_PARAMETERS_MONITOR_WEB_RTC,
-// 	MOS_THRESHOLD,
-// 	CONNECTION_STATE_CHANGE,
-// 	CONNECTED,
-// 	DISCONNECTED,
-// 	FAILED,
-// } from "./constants.js";
 let constants = require("./constants");
-// import { SamplingDataQueue } from "./SamplingDataQueue.js";
-// import { Striker } from "./Striker.js";
-// import EventEmitter from "./external-library/events.js";
 let SamplingDataQueueClass = require("./SamplingDataQueue");
 let StrikerClass = require("./Striker");
-// let EventEmitterClass = require("./external-library/events");
-let EventEmitter1 = require("../node_modules/events");
-// let sss = new SamplingDataQueueClass.SamplingDataQueue(6);
-// console.log(sss.getCurrentIndex());
+let EventEmitter = require("../node_modules/events");
 class MonitorWebRTC {
     constructor(peerConnection, configurableParameters = constants.DEFAULT_PARAMETERS_MONITOR_WEB_RTC) {
         // properties of class MonitorWebRTC
         this.peerConnection = peerConnection;
         this.configurableParameters = configurableParameters;
         this.samplingReport = new SamplingDataQueueClass.SamplingDataQueue(this.configurableParameters.REPORT_MAX_LENGTH);
-        this.eventEmitter = new EventEmitter1();
+        this.eventEmitter = new EventEmitter();
         // used in event trigger case handling
         this.FlagNoConnection = 0;
         this.FlagSlowConnection = 0;
@@ -43,7 +20,6 @@ class MonitorWebRTC {
     initialiser(peerConnection) {
         this.strikerAudio = new StrikerClass.Striker(this.configurableParameters);
         this.strikerConnectionQuality = new StrikerClass.Striker(this.configurableParameters);
-        this.strikerNoConnection = new StrikerClass.Striker(this.configurableParameters, true);
         this.strikerPacketsLostPercentageInbound = new StrikerClass.Striker(this.configurableParameters);
         this.strikerPacketsLostPercentageRemoteInbound = new StrikerClass.Striker(this.configurableParameters);
         this.strikerPacketsSentPerSecond = new StrikerClass.Striker(this.configurableParameters);
@@ -191,8 +167,7 @@ class MonitorWebRTC {
         let reportMaxLength = this.configurableParameters.REPORT_MAX_LENGTH;
         let currentDataValue = this.getValueByReportIndex(index, reportItemType, reportItemKind, requiredParameter);
         let previousDataValue = this.getValueByReportIndex((index - 1 + reportMaxLength) % reportMaxLength, reportItemType, reportItemKind, requiredParameter);
-        if (currentDataValue === constants.BEING_PROCESSED ||
-            previousDataValue === constants.BEING_PROCESSED) {
+        if (currentDataValue === constants.BEING_PROCESSED || previousDataValue === constants.BEING_PROCESSED) {
             return constants.BEING_PROCESSED;
         }
         let samplingFreqInSeconds = this.configurableParameters.SAMPLING_TIME_PERIOD / 1000;
@@ -297,8 +272,7 @@ class MonitorWebRTC {
     categorizeUsingJitterRTT(jitterCategory, RTTCategory) {
         let category;
         if (RTTCategory === constants.DATA_TYPES.POOR) {
-            if (jitterCategory === constants.DATA_TYPES.POOR ||
-                jitterCategory === constants.DATA_TYPES.AVERAGE) {
+            if (jitterCategory === constants.DATA_TYPES.POOR || jitterCategory === constants.DATA_TYPES.AVERAGE) {
                 category = constants.DATA_TYPES.POOR;
             }
             else {
@@ -520,11 +494,9 @@ class SamplingDataQueue {
 module.exports = { SamplingDataQueue };
 
 },{}],3:[function(require,module,exports){
-// import { DATA_TYPES, DEFAULT_PARAMETERS_MONITOR_WEB_RTC, EVENT } from "./constants.js";
 let constantsFile = require("./constants");
 class Striker {
-    constructor(configurableParameters = constantsFile.DEFAULT_PARAMETERS_MONITOR_WEB_RTC, flagForNoConnection = false) {
-        this.flagForNoConnection = flagForNoConnection;
+    constructor(configurableParameters = constantsFile.DEFAULT_PARAMETERS_MONITOR_WEB_RTC) {
         this.configurableParameters = configurableParameters;
         this.strikes = 0;
         this.eventStikerCoefficient = 1.1;
@@ -533,8 +505,7 @@ class Striker {
     updateEventStrikes(category) {
         if (category === constantsFile.DATA_TYPES.POOR) {
             this.strikes++;
-            if ((this.flagForNoConnection === true && this.strikes >= 1) ||
-                this.strikes >= this.configurableParameters.STRIKES_THRESHOLD) {
+            if (this.strikes >= this.configurableParameters.STRIKES_THRESHOLD) {
                 let today = new Date();
                 let currentTime = today.getTime();
                 let difference = this.eventStikerCoefficient * (currentTime - this.lastTimeCalled);
@@ -554,8 +525,6 @@ class Striker {
 module.exports = { Striker };
 
 },{"./constants":4}],4:[function(require,module,exports){
-const REPORT_MAX_LENGTH = 6;
-const SAMPLING_FREQ = 1000;
 const DATA_TYPES = { GOOD: "GOOD", AVERAGE: "AVERAGE", POOR: "POOR" };
 const AUDIO_THRESHOLD = { LOW_THRESHOLD: 0.03, HIGH_THRESHOLD: 0.1 };
 const JITTER_THRESHOLD = { LOW_THRESHOLD: 0.1, HIGH_THRESHOLD: 0.3 };
@@ -594,8 +563,6 @@ const CONNECTED = "connected";
 const DISCONNECTED = "disconnected";
 const FAILED = "failed";
 module.exports = {
-    REPORT_MAX_LENGTH,
-    SAMPLING_FREQ,
     AUDIO_THRESHOLD,
     JITTER_THRESHOLD,
     RTT_THRESHOLD,
@@ -617,7 +584,6 @@ module.exports = {
 };
 
 },{}],5:[function(require,module,exports){
-// export { MonitorWebRTC } from "./MonitorWebRTC.js";
 let MonitorWebRTCClass = require("./MonitorWebRTC");
 module.exports = { MonitorWebRTCClass };
 
