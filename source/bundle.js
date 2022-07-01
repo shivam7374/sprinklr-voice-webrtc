@@ -1,14 +1,19 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 let constants = require("./constants");
-let SamplingDataQueueClass = require("./SamplingDataQueue");
-let StrikerClass = require("./Striker");
+let WEBRTC_PARAMETERS = constants.RTC_PARAMETERS;
+let SamplingDataQueueClassRequired = require("./SamplingDataQueue");
+let SamplingDataQueue = SamplingDataQueueClassRequired.SamplingDataQueue;
+let StrikerClassRequired = require("./Striker");
+let Striker = StrikerClassRequired.Striker;
 let EventEmitter = require("../node_modules/events");
 class MonitorWebRTC {
-    constructor(peerConnection, configurableParameters = constants.DEFAULT_PARAMETERS_MONITOR_WEB_RTC) {
+    constructor(peerConnection, configurableParameters) {
+        let defaultParameters = constants.DEFAULT_PARAMETERS_MONITOR_WEB_RTC;
+        // Object Destructuring is used to merge the configurable Parameters object
+        this.configurableParameters = Object.assign(Object.assign({}, defaultParameters), configurableParameters);
         // properties of class MonitorWebRTC
         this.peerConnection = peerConnection;
-        this.configurableParameters = configurableParameters;
-        this.samplingReport = new SamplingDataQueueClass.SamplingDataQueue(this.configurableParameters.REPORT_MAX_LENGTH);
+        this.samplingReport = new SamplingDataQueue(this.configurableParameters.REPORT_MAX_LENGTH);
         this.eventEmitter = new EventEmitter();
         // used in event trigger case handling
         this.FlagNoConnection = 0;
@@ -18,21 +23,24 @@ class MonitorWebRTC {
         this.initialiser(this.peerConnection);
     }
     initialiser(peerConnection) {
-        this.strikerAudio = new StrikerClass.Striker(this.configurableParameters);
-        this.strikerConnectionQuality = new StrikerClass.Striker(this.configurableParameters);
-        this.strikerPacketsLostPercentageInbound = new StrikerClass.Striker(this.configurableParameters);
-        this.strikerPacketsLostPercentageRemoteInbound = new StrikerClass.Striker(this.configurableParameters);
-        this.strikerPacketsSentPerSecond = new StrikerClass.Striker(this.configurableParameters);
-        this.strikerRetransmittedPacketsSentPerSecond = new StrikerClass.Striker(this.configurableParameters);
-        this.strikerMOS = new StrikerClass.Striker(this.configurableParameters);
-        this.strikerJitter = new StrikerClass.Striker(this.configurableParameters);
-        this.strikerRTT = new StrikerClass.Striker(this.configurableParameters);
+        this.strikerAudio = new Striker(this.configurableParameters);
+        this.strikerConnectionQuality = new Striker(this.configurableParameters);
+        this.strikerPacketsLostPercentageInbound = new Striker(this.configurableParameters);
+        this.strikerPacketsLostPercentageRemoteInbound = new Striker(this.configurableParameters);
+        this.strikerPacketsSentPerSecond = new Striker(this.configurableParameters);
+        this.strikerRetransmittedPacketsSentPerSecond = new Striker(this.configurableParameters);
+        this.strikerMOS = new Striker(this.configurableParameters);
+        this.strikerJitter = new Striker(this.configurableParameters);
+        this.strikerRTT = new Striker(this.configurableParameters);
         // event listeners for connection state changes
         this.connectionStateChangeHandler();
         setInterval(() => {
             if (this.IsConnectedAtLeastOnce() === true) {
                 peerConnection.getStats(null).then((stats) => {
                     this.samplingReport.push(stats);
+                    // Logger Function
+                    let current = new Date();
+                    this.configurableParameters.LOGGER_FUNCTION(current.toLocaleString(), stats, this.samplingReport.getCurrentIndex());
                 });
                 this.checkAudioQuality();
                 this.checkConnectionQuality();
@@ -183,7 +191,7 @@ class MonitorWebRTC {
         if (isConnected === 0) {
             return;
         }
-        let category = this.checkDataValuesPerSecond("outbound-rtp", "audio", "packetsSent", constants.DATA_TYPES, constants.PACKETS_SENT_OUTBOUND_THRESHOLD, 0);
+        let category = this.checkDataValuesPerSecond(WEBRTC_PARAMETERS.OUTBOUND_RTP, WEBRTC_PARAMETERS.AUDIO, WEBRTC_PARAMETERS.PACKETS_SENT, constants.DATA_TYPES, constants.PACKETS_SENT_OUTBOUND_THRESHOLD, 0);
         let flag = this.strikerPacketsSentPerSecond.updateEventStrikes(category);
         if (flag === 1) {
             this.triggerHandler(constants.EVENT.LOW_PACKETS_SENT);
@@ -199,7 +207,7 @@ class MonitorWebRTC {
         if (isConnected === 0) {
             return;
         }
-        let category = this.checkDataValuesPerSecond("outbound-rtp", "audio", "retransmittedPacketsSent", constants.DATA_TYPES, constants.RETRANSMITTED_PACKETS_SENT_OUTBOUND_THRESHOLD, 1);
+        let category = this.checkDataValuesPerSecond(WEBRTC_PARAMETERS.OUTBOUND_RTP, WEBRTC_PARAMETERS.AUDIO, WEBRTC_PARAMETERS.RETRANSMITTED_PACKETS_SENT, constants.DATA_TYPES, constants.RETRANSMITTED_PACKETS_SENT_OUTBOUND_THRESHOLD, 1);
         let flag = this.strikerRetransmittedPacketsSentPerSecond.updateEventStrikes(category);
         if (flag === 1) {
             this.triggerHandler(constants.EVENT.HIGH_RETRANSMITTED_PACKETS_SENT);
@@ -233,7 +241,7 @@ class MonitorWebRTC {
             return;
         }
         let packetsLost = this.getPacketsLostInbound();
-        let packetsReceived = this.getPacketsRecievedInbound();
+        let packetsReceived = this.getPacketsReceivedInbound();
         let packetsLostPercentage = (packetsLost / packetsReceived) * 100;
         if (isNaN(packetsLostPercentage)) {
             packetsLostPercentage = 0;
@@ -369,7 +377,7 @@ class MonitorWebRTC {
     }
     // method to get audio level of the input
     getAudioLevel() {
-        return this.getRealTimeValue("media-source", "audio", "audioLevel");
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.MEDIA_SOURCE, WEBRTC_PARAMETERS.AUDIO, WEBRTC_PARAMETERS.AUDIO_LEVEL);
     }
     // method to get connection log
     getStatsLog() {
@@ -383,59 +391,59 @@ class MonitorWebRTC {
     }
     // method to get Round Trip Time from Remote Outbound audio stream
     getRTTRemoteOutbound() {
-        return this.getRealTimeValue("remote-outbound-rtp", "audio", "totalRoundTripTime");
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.REMOTE_OUTBOUND_RTP, WEBRTC_PARAMETERS.AUDIO, WEBRTC_PARAMETERS.TOTAL_ROUND_TRIP_TIME);
     }
     // method to get Round Trip Time from Remote Inbound audio stream
     getRTTRemoteInbound() {
-        return this.getRealTimeValue("remote-inbound-rtp", "audio", "roundTripTime");
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.REMOTE_INBOUND_RTP, WEBRTC_PARAMETERS.AUDIO, WEBRTC_PARAMETERS.ROUND_TRIP_TIME);
     }
     // method to get Jitter from Remote Inbound audio stream
     getJitter() {
-        return this.getRealTimeValue("remote-inbound-rtp", "audio", "jitter");
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.REMOTE_INBOUND_RTP, WEBRTC_PARAMETERS.AUDIO, WEBRTC_PARAMETERS.JITTER);
     }
     // method to get number of Packets Lost from Inbound Audio stream
     getPacketsLostInbound() {
-        return this.getRealTimeValue("inbound-rtp", "audio", "packetsLost");
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.INBOUND_RTP, WEBRTC_PARAMETERS.AUDIO, WEBRTC_PARAMETERS.PACKETS_LOST);
     }
-    // method to get number of Packets Recieved from Inbound Audio stream
-    getPacketsRecievedInbound() {
-        return this.getRealTimeValue("inbound-rtp", "audio", "packetsReceived");
+    // method to get number of Packets Received from Inbound Audio stream
+    getPacketsReceivedInbound() {
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.INBOUND_RTP, WEBRTC_PARAMETERS.AUDIO, WEBRTC_PARAMETERS.PACKETS_RECEIVED);
     }
     // method to get number of Samples Inserted for Deceleration from Inbound Audio stream
     getInsertedSamplesForDeceleration() {
-        return this.getRealTimeValue("inbound-rtp", "audio", "insertedSamplesForDeceleration");
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.INBOUND_RTP, WEBRTC_PARAMETERS.AUDIO, WEBRTC_PARAMETERS.INSERTED_SAMPLES_FOR_DECELERATION);
     }
     // method to get number of Samples Removed for Acceleration from Inbound Audio stream
     getRemovedSamplesForAcceleration() {
-        return this.getRealTimeValue("inbound-rtp", "audio", "removedSamplesForAcceleration");
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.INBOUND_RTP, WEBRTC_PARAMETERS.AUDIO, WEBRTC_PARAMETERS.REMOVED_SAMPLES_FOR_ACCELERATION);
     }
     // method to get number of Packets Lost from Remote Inbound Audio stream
     getPacketsLostRemoteInbound() {
-        return this.getRealTimeValue("remote-inbound-rtp", "audio", "packetsLost");
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.REMOTE_INBOUND_RTP, WEBRTC_PARAMETERS.AUDIO, WEBRTC_PARAMETERS.PACKETS_LOST);
     }
     // method to get number of Packets Sent from Outbound Audio stream
     getPacketsSentOutbound() {
-        return this.getRealTimeValue("outbound-rtp", "audio", "packetsSent");
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.OUTBOUND_RTP, WEBRTC_PARAMETERS.AUDIO, WEBRTC_PARAMETERS.PACKETS_SENT);
     }
     // method to get number of Retransmitted Packets Sent from Outbound Audio stream
     getRetransmittedPacketsSentOutbound() {
-        return this.getRealTimeValue("outbound-rtp", "audio", "retransmittedPacketsSent");
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.OUTBOUND_RTP, WEBRTC_PARAMETERS.AUDIO, WEBRTC_PARAMETERS.RETRANSMITTED_PACKETS_SENT);
     }
     // method to get number of Packets Sent for the Connection
     getPacketsSentICECandidate() {
-        return this.getICECandidateRealTimeValue("candidate-pair", "packetsSent");
+        return this.getICECandidateRealTimeValue(WEBRTC_PARAMETERS.CANDIDATE_PAIR, WEBRTC_PARAMETERS.PACKETS_SENT);
     }
-    // method to get number of Packets Recieved for the Connection
-    getPacketsRecievedICECandidate() {
-        return this.getICECandidateRealTimeValue("candidate-pair", "packetsReceived");
+    // method to get number of Packets Received for the Connection
+    getPacketsReceivedICECandidate() {
+        return this.getICECandidateRealTimeValue(WEBRTC_PARAMETERS.CANDIDATE_PAIR, WEBRTC_PARAMETERS.PACKETS_RECEIVED);
     }
     // method to get Current Round Trip Time for the Connection
     getCurrentRoundTripTimeICECandidate() {
-        return this.getICECandidateRealTimeValue("candidate-pair", "currentRoundTripTime");
+        return this.getICECandidateRealTimeValue(WEBRTC_PARAMETERS.CANDIDATE_PAIR, WEBRTC_PARAMETERS.CURRENT_ROUND_TRIP_TIME);
     }
     // method to get Available Outgoing Bitrate for the Connection
     getAvailableOutgoingBitrateICECandidate() {
-        return this.getICECandidateRealTimeValue("candidate-pair", "availableOutgoingBitrate");
+        return this.getICECandidateRealTimeValue(WEBRTC_PARAMETERS.CANDIDATE_PAIR, WEBRTC_PARAMETERS.AVAILABLE_OUTGOING_BITRATE);
     }
     // function for checking and classifying MOS value
     checkMOSValue() {
@@ -454,8 +462,8 @@ class MonitorWebRTC {
         let jitter = this.getJitter();
         let effectiveLatency = averageLatency + jitter * 2 + 10;
         let packetsLostInbound = this.getPacketsLostInbound();
-        let packetsRecievedInbound = this.getPacketsRecievedInbound();
-        let packetsLostPercentage = (packetsLostInbound / packetsRecievedInbound) * 100;
+        let packetsReceivedInbound = this.getPacketsReceivedInbound();
+        let packetsLostPercentage = (packetsLostInbound / packetsReceivedInbound) * 100;
         let R;
         if (effectiveLatency < 160) {
             R = 93.2 - effectiveLatency / 40;
@@ -471,7 +479,7 @@ class MonitorWebRTC {
 module.exports = { MonitorWebRTC };
 
 },{"../node_modules/events":6,"./SamplingDataQueue":2,"./Striker":3,"./constants":4}],2:[function(require,module,exports){
-class SamplingDataQueue {
+class SamplingDataQueueClass {
     constructor(size) {
         this.size = size;
         this.array = [];
@@ -491,11 +499,11 @@ class SamplingDataQueue {
         this.array[this.currentIndex] = val;
     }
 }
-module.exports = { SamplingDataQueue };
+module.exports = { SamplingDataQueue: SamplingDataQueueClass };
 
 },{}],3:[function(require,module,exports){
 let constantsFile = require("./constants");
-class Striker {
+class StrikerClass {
     constructor(configurableParameters = constantsFile.DEFAULT_PARAMETERS_MONITOR_WEB_RTC) {
         this.configurableParameters = configurableParameters;
         this.strikes = 0;
@@ -509,8 +517,7 @@ class Striker {
                 let today = new Date();
                 let currentTime = today.getTime();
                 let difference = this.eventStikerCoefficient * (currentTime - this.lastTimeCalled);
-                if (this.lastTimeCalled === -1 ||
-                    difference >= this.configurableParameters.EVENT_EMIT_TIME_PERIOD) {
+                if (this.lastTimeCalled === -1 || difference >= this.configurableParameters.EVENT_EMIT_TIME_PERIOD) {
                     this.lastTimeCalled = currentTime;
                     return 1;
                 }
@@ -522,7 +529,7 @@ class Striker {
         return 0;
     }
 }
-module.exports = { Striker };
+module.exports = { Striker: StrikerClass };
 
 },{"./constants":4}],4:[function(require,module,exports){
 const DATA_TYPES = { GOOD: "GOOD", AVERAGE: "AVERAGE", POOR: "POOR" };
@@ -551,10 +558,31 @@ const EVENT = {
 };
 const DEFAULT_PARAMETERS_MONITOR_WEB_RTC = {
     SAMPLING_TIME_PERIOD: 1000,
-    REPORT_MAX_LENGTH: 6,
-    ANALYSIS_REPORT_LENGTH: 6,
+    REPORT_MAX_LENGTH: 500,
     EVENT_EMIT_TIME_PERIOD: 3000,
     STRIKES_THRESHOLD: 3,
+    LOGGER_FUNCTION: console.log,
+};
+const RTC_PARAMETERS = {
+    AUDIO: "audio",
+    AUDIO_LEVEL: "audioLevel",
+    JITTER: "jitter",
+    REMOTE_INBOUND_RTP: "remote-inbound-rtp",
+    REMOTE_OUTBOUND_RTP: "remote-outbound-rtp",
+    INBOUND_RTP: "inbound-rtp",
+    OUTBOUND_RTP: "outbound-rtp",
+    PACKETS_LOST: "packetsLost",
+    PACKETS_RECEIVED: "packetsReceived",
+    RETRANSMITTED_PACKETS_SENT: "retransmittedPacketsSent",
+    PACKETS_SENT: "packetsSent",
+    INSERTED_SAMPLES_FOR_DECELERATION: "insertedSamplesForDeceleration",
+    REMOVED_SAMPLES_FOR_ACCELERATION: "removedSamplesForAcceleration",
+    CANDIDATE_PAIR: "candidate-pair",
+    ROUND_TRIP_TIME: "roundTripTime",
+    CURRENT_ROUND_TRIP_TIME: "currentRoundTripTime",
+    AVAILABLE_OUTGOING_BITRATE: "availableOutgoingBitrate",
+    MEDIA_SOURCE: "media-source",
+    TOTAL_ROUND_TRIP_TIME: "totalRoundTripTime",
 };
 const BEING_PROCESSED = "being processed";
 const NOT_ENOUGH_DATA = "Not enough data";
@@ -581,11 +609,12 @@ module.exports = {
     CONNECTED,
     DISCONNECTED,
     FAILED,
+    RTC_PARAMETERS,
 };
 
 },{}],5:[function(require,module,exports){
-let MonitorWebRTCClass = require("./MonitorWebRTC");
-module.exports = { MonitorWebRTCClass };
+const MonitorWebRTCClass = require("./MonitorWebRTC");
+module.exports = { MonitorWebRTC: MonitorWebRTCClass.MonitorWebRTC };
 
 },{"./MonitorWebRTC":1}],6:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
@@ -1206,13 +1235,12 @@ document.getElementById("chat_text").addEventListener("keypress", async (event) 
 let Monitor = require("../../sprinklr-monitor-webrtc/build/index");
 let CONFIGURABLE_PARAMETERS = {
 	SAMPLING_TIME_PERIOD: 1000,
-	REPORT_MAX_LENGTH: 6,
-	ANALYSIS_REPORT_LENGTH: 6,
+	REPORT_MAX_LENGTH: 500,
 	EVENT_EMIT_TIME_PERIOD: 3000,
 	STRIKES_THRESHOLD: 3,
 };
 // creating new MonitorWebRTC instance
-let monitor = new Monitor.MonitorWebRTCClass.MonitorWebRTC(localConnection, CONFIGURABLE_PARAMETERS);
+let monitor = new Monitor.MonitorWebRTC(localConnection, CONFIGURABLE_PARAMETERS);
 monitor.eventEmitter.on("LOW_AUDIO", function (text) {
 	notifyInfo("Info ", "Low Audio");
 });
@@ -1313,8 +1341,8 @@ function webRTC_dashboard() {
 			pushValue(myChart10, monitor.getAvailableOutgoingBitrateICECandidate());
 			statsOutput += `<strong>Current Round Trip Time for the Connection :</strong> ${monitor.getCurrentRoundTripTimeICECandidate()}<br>\n`;
 			pushValue(myChart11, monitor.getCurrentRoundTripTimeICECandidate());
-			statsOutput += `<strong>Packets Recieved by the Connection :</strong> ${monitor.getPacketsRecievedICECandidate()}<br>\n`;
-			pushValue(myChart12, monitor.getPacketsRecievedICECandidate());
+			statsOutput += `<strong>Packets Received by the Connection :</strong> ${monitor.getPacketsReceivedICECandidate()}<br>\n`;
+			pushValue(myChart12, monitor.getPacketsReceivedICECandidate());
 			statsOutput += `<strong>Packets Sent by the Connection :</strong> ${monitor.getPacketsSentICECandidate()}<br>\n`;
 			pushValue(myChart13, monitor.getPacketsSentICECandidate());
 
@@ -1660,7 +1688,7 @@ function webRTC_dashboard() {
 				labels: [],
 				datasets: [
 					{
-						label: "Packets Recieved by the Connection",
+						label: "Packets Received by the Connection",
 						data: [],
 					},
 				],

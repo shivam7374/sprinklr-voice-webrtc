@@ -117,13 +117,13 @@ document.getElementById("chat_text").addEventListener("keypress", async (event) 
 let Monitor = require("../../sprinklr-monitor-webrtc/build/index");
 let CONFIGURABLE_PARAMETERS = {
 	SAMPLING_TIME_PERIOD: 1000,
-	REPORT_MAX_LENGTH: 6,
-	ANALYSIS_REPORT_LENGTH: 6,
+	REPORT_MAX_LENGTH: 500,
 	EVENT_EMIT_TIME_PERIOD: 3000,
 	STRIKES_THRESHOLD: 3,
+	LOGGER_FUNCTION: console.log,
 };
 // creating new MonitorWebRTC instance
-let monitor = new Monitor.MonitorWebRTCClass.MonitorWebRTC(localConnection, CONFIGURABLE_PARAMETERS);
+let monitor = new Monitor.MonitorWebRTC(localConnection, CONFIGURABLE_PARAMETERS);
 monitor.eventEmitter.on("LOW_AUDIO", function (text) {
 	notifyInfo("Info ", "Low Audio");
 });
@@ -224,8 +224,8 @@ function webRTC_dashboard() {
 			pushValue(myChart10, monitor.getAvailableOutgoingBitrateICECandidate());
 			statsOutput += `<strong>Current Round Trip Time for the Connection :</strong> ${monitor.getCurrentRoundTripTimeICECandidate()}<br>\n`;
 			pushValue(myChart11, monitor.getCurrentRoundTripTimeICECandidate());
-			statsOutput += `<strong>Packets Recieved by the Connection :</strong> ${monitor.getPacketsRecievedICECandidate()}<br>\n`;
-			pushValue(myChart12, monitor.getPacketsRecievedICECandidate());
+			statsOutput += `<strong>Packets Received by the Connection :</strong> ${monitor.getPacketsReceivedICECandidate()}<br>\n`;
+			pushValue(myChart12, monitor.getPacketsReceivedICECandidate());
 			statsOutput += `<strong>Packets Sent by the Connection :</strong> ${monitor.getPacketsSentICECandidate()}<br>\n`;
 			pushValue(myChart13, monitor.getPacketsSentICECandidate());
 
@@ -571,7 +571,7 @@ function webRTC_dashboard() {
 				labels: [],
 				datasets: [
 					{
-						label: "Packets Recieved by the Connection",
+						label: "Packets Received by the Connection",
 						data: [],
 					},
 				],
