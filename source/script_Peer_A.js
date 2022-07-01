@@ -114,7 +114,8 @@ document.getElementById("chat_text").addEventListener("keypress", async (event) 
 	}
 });
 
-let Monitor = require("../../sprinklr-monitor-webrtc/build/index");
+// let Monitor = require("../../sprinklr-monitor-webrtc/build/index");
+let Monitor = require("monitor-webrtc-connection");
 let CONFIGURABLE_PARAMETERS = {
 	SAMPLING_TIME_PERIOD: 1000,
 	REPORT_MAX_LENGTH: 500,

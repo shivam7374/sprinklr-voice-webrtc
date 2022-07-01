@@ -22,5 +22,8 @@
 	"license": "ISC",
 	"devDependencies": {
 		"@types/node": "^18.0.0"
+	},
+	"dependencies": {
+		"monitor-webrtc-connection": "^1.0.0"
 	}
 }
