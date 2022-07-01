@@ -4,21 +4,16 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Sender_Guy</title>
-		<link rel="stylesheet" href="./style.css" type="text/css" />
+		<link rel="stylesheet" href="../style/style.css" type="text/css" />
 		<link rel="shortcut icon" href="#" />
 
 		<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.js"></script>
-		<!-- <script src="https://requirejs.org/docs/release/2.3.5/minified/require.js"></script> -->
-		<!-- <script type="module" src="./script_webrtc.js"></script> -->
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-		<link
-			rel="stylesheet"
-			href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css"
-		/>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.8.0/chart.min.js"></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css" />
 		<script src="./bundle.js" defer></script>
-		<!-- <script src="./test.js"></script> -->
 	</head>
 
 	<body>
@@ -31,11 +26,7 @@
 			</div>
 			<br /><br />
 			Remote IP to be entered here (Enter the local address of Peer B):
-			<input
-				type="text"
-				id="remote_address"
-				placeholder="Remote Address to be entered here "
-			/>
+			<input type="text" id="remote_address" placeholder="Remote Address to be entered here " />
 		</div>
 
 		<div id="upper-buttons">
@@ -56,6 +47,9 @@
 		<button class="send_response">Send</button>
 
 		<div class="chat"></div>
+		<br /><br />
 		<div class="stats-box"></div>
+		<br /><br />
+		<h2>Statistics Charts</h2>
 	</body>
 </html>
