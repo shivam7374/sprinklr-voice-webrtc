@@ -30,7 +30,7 @@ localConnection.addEventListener("icecandidate", (event) => {
 				description: localConnection.localDescription,
 				icecandidates: iceCandidates,
 			});
-		}, 100);
+		}, 1500);
 });
 
 // creating the local videochannel
@@ -108,4 +108,41 @@ document.getElementById("chat_text").addEventListener("keypress", async (event) 
 		localConnection.channel.send(response);
 	}
 });
+
+document.getElementById("video-pause-button").addEventListener("click", () => {
+	toggleMediaOptionButtonColor(document.getElementById("video-pause-button"));
+
+	outBox.srcObject.getTracks()[1].enabled = !outBox.srcObject.getTracks()[1].enabled;
+});
+
+document.getElementById("audio-pause-button").addEventListener("click", () => {
+	toggleMediaOptionButtonColor(document.getElementById("audio-pause-button"));
+
+	outBox.srcObject.getTracks()[0].enabled = !outBox.srcObject.getTracks()[0].enabled;
+});
+function toggleMediaOptionButtonColor(element) {
+	if (element.style.backgroundColor == "#ff4646" || element.style.backgroundColor == hexToRGB("#ff4646"))
+		element.style.backgroundColor = "#49b568";
+	else element.style.backgroundColor = "#ff4646";
+}
+function hexToRGB(h) {
+	let r = 0,
+		g = 0,
+		b = 0;
+
+	// 3 digits
+	if (h.length == 4) {
+		r = "0x" + h[1] + h[1];
+		g = "0x" + h[2] + h[2];
+		b = "0x" + h[3] + h[3];
+
+		// 6 digits
+	} else if (h.length == 7) {
+		r = "0x" + h[1] + h[2];
+		g = "0x" + h[3] + h[4];
+		b = "0x" + h[5] + h[6];
+	}
+
+	return "rgb(" + +r + ", " + +g + ", " + +b + ")";
+}
 // module.exports= { localConnection };

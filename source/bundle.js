@@ -1,11 +1,11 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-let constants = require("./constants");
-let WEBRTC_PARAMETERS = constants.RTC_PARAMETERS;
-let SamplingDataQueueClassRequired = require("./SamplingDataQueue");
-let SamplingDataQueue = SamplingDataQueueClassRequired.SamplingDataQueue;
-let StrikerClassRequired = require("./Striker");
-let Striker = StrikerClassRequired.Striker;
-let EventEmitter = require("events");
+const constants = require("./constants");
+const WEBRTC_PARAMETERS = constants.RTC_PARAMETERS;
+const SamplingDataQueueClassRequired = require("./SamplingDataQueue");
+const SamplingDataQueue = SamplingDataQueueClassRequired.SamplingDataQueue;
+const StrikerClassRequired = require("./Striker");
+const Striker = StrikerClassRequired.Striker;
+const EventEmitter = require("events");
 class MonitorWebRTC {
     constructor(peerConnection, configurableParameters) {
         let defaultParameters = constants.DEFAULT_PARAMETERS_MONITOR_WEB_RTC;
@@ -23,6 +23,7 @@ class MonitorWebRTC {
         this.initialiser(this.peerConnection);
     }
     initialiser(peerConnection) {
+        // Striker for doing analysis using audio parameters
         this.strikerAudio = new Striker(this.configurableParameters);
         this.strikerConnectionQuality = new Striker(this.configurableParameters);
         this.strikerPacketsLostPercentageInbound = new Striker(this.configurableParameters);
@@ -32,6 +33,16 @@ class MonitorWebRTC {
         this.strikerMOS = new Striker(this.configurableParameters);
         this.strikerJitter = new Striker(this.configurableParameters);
         this.strikerRTT = new Striker(this.configurableParameters);
+        // Striker for doing analysis using video parameters
+        this.strikerConnectionQualityVideo = new Striker(this.configurableParameters);
+        this.strikerPacketsLostPercentageInboundVideo = new Striker(this.configurableParameters);
+        this.strikerPacketsLostPercentageRemoteInboundVideo = new Striker(this.configurableParameters);
+        this.strikerPacketsSentPerSecondVideo = new Striker(this.configurableParameters);
+        this.strikerPacketsReceivedPerSecondVideo = new Striker(this.configurableParameters);
+        this.strikerRetransmittedPacketsSentPerSecondVideo = new Striker(this.configurableParameters);
+        this.strikerMOSVideo = new Striker(this.configurableParameters);
+        this.strikerJitterVideo = new Striker(this.configurableParameters);
+        this.strikerRTTVideo = new Striker(this.configurableParameters);
         // event listeners for connection state changes
         this.connectionStateChangeHandler();
         setInterval(() => {
@@ -40,7 +51,10 @@ class MonitorWebRTC {
                     this.samplingReport.push(stats);
                     // Logger Function
                     let current = new Date();
-                    this.configurableParameters.LOGGER_FUNCTION(current.toLocaleString(), stats, this.samplingReport.getCurrentIndex());
+                    // this.configurableParameters.LOGGER_FUNCTION(
+                    // 	current.toLocaleString(),
+                    // 	stats
+                    // );
                 });
                 this.checkAudioQuality();
                 this.checkConnectionQuality();
@@ -50,6 +64,14 @@ class MonitorWebRTC {
                 this.checkPacketsLostPercentageInbound();
                 this.checkPacketsLostPercentageRemoteInbound();
                 this.checkMOSValue();
+                this.checkConnectionQualityVideo();
+                this.checkPacketsSentPerSecondVideo();
+                this.checkRetransmittedPacketsSentPerSecondVideo();
+                this.checkPacketsLostPercentageInboundVideo();
+                this.checkPacketsLostPercentageInboundVideo();
+                this.checkPacketsLostPercentageRemoteInboundVideo();
+                this.checkMOSValueVideo();
+                this.checkPacketsReceivedPerSecondVideo();
                 // to reset the repeated events trigger cycle
                 this.FlagNoConnection = 0;
                 this.FlagSlowConnection = 0;
@@ -375,10 +397,6 @@ class MonitorWebRTC {
         }
         return output;
     }
-    // method to get audio level of the input
-    getAudioLevel() {
-        return this.getRealTimeValue(WEBRTC_PARAMETERS.MEDIA_SOURCE, WEBRTC_PARAMETERS.AUDIO, WEBRTC_PARAMETERS.AUDIO_LEVEL);
-    }
     // method to get connection log
     getStatsLog() {
         return this.samplingReport.getSamplingReports();
@@ -388,6 +406,11 @@ class MonitorWebRTC {
         let currentReportIndex = this.samplingReport.getCurrentIndex();
         let currentSamplingReport = this.samplingReport.getReportAtIndex(currentReportIndex);
         return currentSamplingReport;
+    }
+    // Audio Analysis
+    // method to get audio level of the input
+    getAudioLevel() {
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.MEDIA_SOURCE, WEBRTC_PARAMETERS.AUDIO, WEBRTC_PARAMETERS.AUDIO_LEVEL);
     }
     // method to get Round Trip Time from Remote Outbound audio stream
     getRTTRemoteOutbound() {
@@ -475,6 +498,210 @@ class MonitorWebRTC {
         let MOS = 1 + 0.035 * R + 0.000007 * R * (R - 60) * (100 - R);
         return MOS;
     }
+    // Video Analysis
+    // function to check outbound video stream
+    // function to check packets sent per second
+    checkPacketsSentPerSecondVideo() {
+        // to check if connection exsits or not
+        // if no connection, then no need to calculate further
+        let isConnected = this.checkIsConnection();
+        if (isConnected === 0) {
+            return;
+        }
+        let category = this.checkDataValuesPerSecond(WEBRTC_PARAMETERS.OUTBOUND_RTP, WEBRTC_PARAMETERS.VIDEO, WEBRTC_PARAMETERS.PACKETS_SENT, constants.DATA_TYPES, constants.PACKETS_SENT_OUTBOUND_THRESHOLD_VIDEO, 0);
+        let flag = this.strikerPacketsSentPerSecondVideo.updateEventStrikes(category);
+        if (flag === 1) {
+            this.triggerHandler(constants.EVENT.LOW_PACKETS_SENT_VIDEO);
+            this.triggerHandler(constants.EVENT.NO_OUTPUT_VIDEO_STREAM);
+        }
+        return category;
+    }
+    // function to check inbound video stream
+    // function to check packets received per second
+    checkPacketsReceivedPerSecondVideo() {
+        // to check if connection exsits or not
+        // if no connection, then no need to calculate further
+        let isConnected = this.checkIsConnection();
+        if (isConnected === 0) {
+            return;
+        }
+        let category = this.checkDataValuesPerSecond(WEBRTC_PARAMETERS.INBOUND_RTP, WEBRTC_PARAMETERS.VIDEO, WEBRTC_PARAMETERS.PACKETS_RECEIVED, constants.DATA_TYPES, constants.PACKETS_RECEIVED_INBOUND_THRESHOLD_VIDEO, 0);
+        let flag = this.strikerPacketsReceivedPerSecondVideo.updateEventStrikes(category);
+        if (flag === 1) {
+            this.triggerHandler(constants.EVENT.LOW_PACKETS_RECEIVED_VIDEO);
+            this.triggerHandler(constants.EVENT.NO_INPUT_VIDEO_STREAM);
+        }
+        return category;
+    }
+    // function to check retransmitted packets per second
+    checkRetransmittedPacketsSentPerSecondVideo() {
+        // to check if connection exsits or not
+        // if no connection, then no need to calculate further
+        let isConnected = this.checkIsConnection();
+        if (isConnected === 0) {
+            return;
+        }
+        let category = this.checkDataValuesPerSecond(WEBRTC_PARAMETERS.OUTBOUND_RTP, WEBRTC_PARAMETERS.VIDEO, WEBRTC_PARAMETERS.RETRANSMITTED_PACKETS_SENT, constants.DATA_TYPES, constants.RETRANSMITTED_PACKETS_SENT_OUTBOUND_THRESHOLD_VIDEO, 1);
+        let flag = this.strikerRetransmittedPacketsSentPerSecondVideo.updateEventStrikes(category);
+        if (flag === 1) {
+            this.triggerHandler(constants.EVENT.HIGH_RETRANSMITTED_PACKETS_SENT);
+            this.triggerHandler(constants.EVENT.SLOW_CONNECTION);
+        }
+        return category;
+    }
+    // function to check inbound packet loss
+    checkPacketsLostPercentageInboundVideo() {
+        // to check if connection exsits or not
+        // if no connection, then no need to calculate further
+        let isConnected = this.checkIsConnection();
+        if (isConnected === 0) {
+            return;
+        }
+        let packetsLost = this.getPacketsLostInboundVideo();
+        let packetsReceived = this.getPacketsReceivedInboundVideo();
+        let packetsLostPercentage = (packetsLost / packetsReceived) * 100;
+        if (isNaN(packetsLostPercentage)) {
+            packetsLostPercentage = 0;
+        }
+        // classifies on the basis of the packets lost percentage
+        let category = this.classifyData(packetsLostPercentage, constants.DATA_TYPES, constants.PACKETS_LOST_PERCENTAGE_THRESHOLD_VIDEO, 1);
+        let flag = this.strikerPacketsLostPercentageInboundVideo.updateEventStrikes(category);
+        if (flag === 1) {
+            this.triggerHandler(constants.EVENT.HIGH_INBOUND_PACKET_LOSS);
+            this.triggerHandler(constants.EVENT.SLOW_CONNECTION);
+        }
+        return category;
+    }
+    // function to check remote inbound packet loss
+    checkPacketsLostPercentageRemoteInboundVideo() {
+        // to check if connection exsits or not
+        // if no connection, then no need to calculate further
+        let isConnected = this.checkIsConnection();
+        if (isConnected === 0) {
+            return;
+        }
+        let packetsLost = this.getPacketsLostRemoteInboundVideo();
+        let packetsSent = this.getPacketsSentOutboundVideo();
+        let packetsLostPercentage = packetsLost / packetsSent;
+        if (isNaN(packetsLostPercentage)) {
+            packetsLostPercentage = 0;
+        }
+        let category = this.classifyData(packetsLostPercentage, constants.DATA_TYPES, constants.PACKETS_LOST_PERCENTAGE_THRESHOLD_VIDEO, 1);
+        let flag = this.strikerPacketsLostPercentageRemoteInboundVideo.updateEventStrikes(category);
+        if (flag === 1) {
+            this.triggerHandler(constants.EVENT.HIGH_REMOTE_INBOUND_PACKET_LOSS);
+            this.triggerHandler(constants.EVENT.SLOW_CONNECTION);
+        }
+        return category;
+    }
+    // function to check internet speed using Jitter and Round trip time
+    checkConnectionQualityVideo() {
+        // to check if connection exsits or not
+        // if no connection, then no need to calculate further
+        let isConnected = this.checkIsConnection();
+        if (isConnected === 0) {
+            return;
+        }
+        let jitter = this.getJitterVideo();
+        let jitterCategory = this.categorizeData(jitter, constants.DATA_TYPES, constants.JITTER_THRESHOLD, 1);
+        let jitterFlag = this.strikerJitterVideo.updateEventStrikes(jitterCategory);
+        if (jitterFlag === 1) {
+            this.triggerHandler(constants.EVENT.HIGH_JITTER);
+        }
+        let RTT = this.getRTTRemoteInboundVideo();
+        let RTTCategory = this.classifyData(RTT, constants.DATA_TYPES, constants.RTT_THRESHOLD_VIDEO, 1);
+        let RTTFlag = this.strikerRTTVideo.updateEventStrikes(RTTCategory);
+        if (RTTFlag === 1) {
+            this.triggerHandler(constants.EVENT.HIGH_ROUND_TRIP_TIME);
+        }
+        let category = this.categorizeUsingJitterRTT(jitterCategory, RTTCategory);
+        let flag = this.strikerConnectionQualityVideo.updateEventStrikes(category);
+        if (flag === 1) {
+            this.triggerHandler(constants.EVENT.SLOW_CONNECTION);
+        }
+        return category;
+    }
+    // returns the total number of packets sent
+    getPacketsSentOutboundVideo() {
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.OUTBOUND_RTP, WEBRTC_PARAMETERS.VIDEO, WEBRTC_PARAMETERS.PACKETS_SENT);
+    }
+    // returns the total number of retransmitted packets sent
+    getRetransmittedPacketsSentOutboundVideo() {
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.OUTBOUND_RTP, WEBRTC_PARAMETERS.VIDEO, WEBRTC_PARAMETERS.RETRANSMITTED_PACKETS_SENT);
+    }
+    // method to get Jitter from Remote Inbound video stream
+    getJitterVideo() {
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.REMOTE_INBOUND_RTP, WEBRTC_PARAMETERS.VIDEO, WEBRTC_PARAMETERS.JITTER);
+    }
+    // method to get Round Trip Time from Remote Inbound video stream
+    getRTTRemoteInboundVideo() {
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.REMOTE_INBOUND_RTP, WEBRTC_PARAMETERS.VIDEO, WEBRTC_PARAMETERS.ROUND_TRIP_TIME);
+    }
+    // method to get number of Packets Lost from Remote Inbound Video stream
+    getPacketsLostRemoteInboundVideo() {
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.REMOTE_INBOUND_RTP, WEBRTC_PARAMETERS.VIDEO, WEBRTC_PARAMETERS.PACKETS_LOST);
+    }
+    getPacketsLostInboundVideo() {
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.INBOUND_RTP, WEBRTC_PARAMETERS.VIDEO, WEBRTC_PARAMETERS.PACKETS_LOST);
+    }
+    // method to get number of Packets Received from Inbound Audio stream
+    getPacketsReceivedInboundVideo() {
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.INBOUND_RTP, WEBRTC_PARAMETERS.VIDEO, WEBRTC_PARAMETERS.PACKETS_RECEIVED);
+    }
+    // returns total frames sent during the WebRTC call
+    getFramesSentOutboundVideo() {
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.OUTBOUND_RTP, WEBRTC_PARAMETERS.VIDEO, WEBRTC_PARAMETERS.FRAMES_SENT);
+    }
+    // returns total frames received during the WebRTC call
+    getFramesReceivedInboundVideo() {
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.INBOUND_RTP, WEBRTC_PARAMETERS.VIDEO, WEBRTC_PARAMETERS.FRAMES_RECEIVED);
+    }
+    // returns the frame width of the video received during WebRTC call
+    getFrameWidthInboundVideo() {
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.INBOUND_RTP, WEBRTC_PARAMETERS.VIDEO, WEBRTC_PARAMETERS.FRAME_WIDTH);
+    }
+    // returns the frame height of the video received during WebRTC call
+    getFrameHeightInboundVideo() {
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.INBOUND_RTP, WEBRTC_PARAMETERS.VIDEO, WEBRTC_PARAMETERS.FRAME_HEIGHT);
+    }
+    // returns the frame width of the video sent during WebRTC call
+    getFrameWidthOutboundVideo() {
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.OUTBOUND_RTP, WEBRTC_PARAMETERS.VIDEO, WEBRTC_PARAMETERS.FRAME_WIDTH);
+    }
+    // returns the frame height of the video sent during WebRTC call
+    getFrameHeightOutboundVideo() {
+        return this.getRealTimeValue(WEBRTC_PARAMETERS.OUTBOUND_RTP, WEBRTC_PARAMETERS.VIDEO, WEBRTC_PARAMETERS.FRAME_HEIGHT);
+    }
+    // function for checking and classifying MOS value
+    checkMOSValueVideo() {
+        let MOS_Value = this.getMeanOpinionScoreVideo();
+        let category = this.categorizeData(MOS_Value, constants.DATA_TYPES, constants.MOS_THRESHOLD);
+        let flag = this.strikerMOSVideo.updateEventStrikes(category);
+        if (flag === 1) {
+            this.triggerHandler(constants.EVENT.LOW_MOS_VALUE);
+            this.triggerHandler(constants.EVENT.SLOW_CONNECTION);
+        }
+        return MOS_Value;
+    }
+    // function to find Mean Opinion Score of video at Particular instance
+    getMeanOpinionScoreVideo() {
+        let averageLatency = this.getCurrentRoundTripTimeICECandidate();
+        let jitter = this.getJitterVideo();
+        let effectiveLatency = averageLatency + jitter * 2 + 10;
+        let packetsLostInbound = this.getPacketsLostInboundVideo();
+        let packetsReceivedInbound = this.getPacketsReceivedInboundVideo();
+        let packetsLostPercentage = (packetsLostInbound / packetsReceivedInbound) * 100;
+        let R;
+        if (effectiveLatency < 160) {
+            R = 93.2 - effectiveLatency / 40;
+        }
+        else {
+            R = 93.2 - (effectiveLatency - 120) / 10;
+        }
+        R = R - packetsLostPercentage * 2;
+        let MOS = 1 + 0.035 * R + 0.000007 * R * (R - 60) * (100 - R);
+        return MOS;
+    }
 }
 module.exports = { MonitorWebRTC };
 
@@ -502,7 +729,7 @@ class SamplingDataQueueClass {
 module.exports = { SamplingDataQueue: SamplingDataQueueClass };
 
 },{}],3:[function(require,module,exports){
-let constantsFile = require("./constants");
+const constantsFile = require("./constants");
 class StrikerClass {
     constructor(configurableParameters = constantsFile.DEFAULT_PARAMETERS_MONITOR_WEB_RTC) {
         this.configurableParameters = configurableParameters;
@@ -536,17 +763,26 @@ const DATA_TYPES = { GOOD: "GOOD", AVERAGE: "AVERAGE", POOR: "POOR" };
 const AUDIO_THRESHOLD = { LOW_THRESHOLD: 0.03, HIGH_THRESHOLD: 0.1 };
 const JITTER_THRESHOLD = { LOW_THRESHOLD: 0.1, HIGH_THRESHOLD: 0.3 };
 const RTT_THRESHOLD = { THRESHOLD: 0.5 };
+const RTT_THRESHOLD_VIDEO = { THRESHOLD: 84.2 };
 const PACKETS_LOST_PERCENTAGE_THRESHOLD = { LOW_THRESHOLD: 10, HIGH_THRESHOLD: 15 };
 const MOS_THRESHOLD = { LOW_THRESHOLD: 2, HIGH_THRESHOLD: 3 };
 const PACKETS_SENT_OUTBOUND_THRESHOLD = { THRESHOLD: 10 };
+const PACKETS_SENT_OUTBOUND_THRESHOLD_VIDEO = { THRESHOLD: 35 };
+const PACKETS_RECEIVED_INBOUND_THRESHOLD_VIDEO = { THRESHOLD: 35 };
+const PACKETS_LOST_PERCENTAGE_THRESHOLD_VIDEO = { THRESHOLD: 2.44 };
 const RETRANSMITTED_PACKETS_SENT_OUTBOUND_THRESHOLD = { THRESHOLD: 2 };
+const RETRANSMITTED_PACKETS_SENT_OUTBOUND_THRESHOLD_VIDEO = { THRESHOLD: 6 };
 const PACKETS_SENT_OUTBOUND_THRESHOLD_ICE = { THRESHOLD: 10 };
 const PACKETS_RECEIVED_OUTBOUND_THRESHOLD_ICE = { THRESHOLD: 10 };
 const EVENT = {
     SLOW_CONNECTION: "SLOW_CONNECTION",
+    NO_INPUT_VIDEO_STREAM: "NO_INPUT_VIDEO_STREAM",
+    NO_OUTPUT_VIDEO_STREAM: "NO_OUTPUT_VIDEO_STREAM",
     LOW_AUDIO: "LOW_AUDIO",
     NO_CONNECTION: "NO_CONNECTION",
     LOW_PACKETS_SENT: "LOW_PACKETS_SENT",
+    LOW_PACKETS_SENT_VIDEO: "LOW_PACKETS_SENT_VIDEO",
+    LOW_PACKETS_RECEIVED_VIDEO: "LOW_PACKETS_RECEIVED_VIDEO",
     HIGH_RETRANSMITTED_PACKETS_SENT: "HIGH_RETRANSMITTED_PACKETS_SENT",
     HIGH_INBOUND_PACKET_LOSS: "HIGH_INBOUND_PACKET_LOSS",
     HIGH_REMOTE_INBOUND_PACKET_LOSS: "HIGH_REMOTE_INBOUND_PACKET_LOSS",
@@ -565,6 +801,7 @@ const DEFAULT_PARAMETERS_MONITOR_WEB_RTC = {
 };
 const RTC_PARAMETERS = {
     AUDIO: "audio",
+    VIDEO: "video",
     AUDIO_LEVEL: "audioLevel",
     JITTER: "jitter",
     REMOTE_INBOUND_RTP: "remote-inbound-rtp",
@@ -583,6 +820,10 @@ const RTC_PARAMETERS = {
     AVAILABLE_OUTGOING_BITRATE: "availableOutgoingBitrate",
     MEDIA_SOURCE: "media-source",
     TOTAL_ROUND_TRIP_TIME: "totalRoundTripTime",
+    FRAMES_RECEIVED: "framesReceived",
+    FRAME_WIDTH: "frameWidth",
+    FRAME_HEIGHT: "frameHeight",
+    FRAMES_SENT: "framesSent",
 };
 const BEING_PROCESSED = "being processed";
 const NOT_ENOUGH_DATA = "Not enough data";
@@ -591,19 +832,24 @@ const CONNECTED = "connected";
 const DISCONNECTED = "disconnected";
 const FAILED = "failed";
 module.exports = {
+    DATA_TYPES,
     AUDIO_THRESHOLD,
     JITTER_THRESHOLD,
     RTT_THRESHOLD,
+    RTT_THRESHOLD_VIDEO,
     PACKETS_LOST_PERCENTAGE_THRESHOLD,
-    DATA_TYPES,
     BEING_PROCESSED,
     NOT_ENOUGH_DATA,
     EVENT,
     PACKETS_SENT_OUTBOUND_THRESHOLD,
+    PACKETS_SENT_OUTBOUND_THRESHOLD_VIDEO,
     RETRANSMITTED_PACKETS_SENT_OUTBOUND_THRESHOLD,
+    RETRANSMITTED_PACKETS_SENT_OUTBOUND_THRESHOLD_VIDEO,
+    PACKETS_RECEIVED_INBOUND_THRESHOLD_VIDEO,
     PACKETS_SENT_OUTBOUND_THRESHOLD_ICE,
     PACKETS_RECEIVED_OUTBOUND_THRESHOLD_ICE,
     DEFAULT_PARAMETERS_MONITOR_WEB_RTC,
+    PACKETS_LOST_PERCENTAGE_THRESHOLD_VIDEO,
     MOS_THRESHOLD,
     CONNECTION_STATE_CHANGE,
     CONNECTED,
@@ -649,7 +895,7 @@ localConnection.addEventListener("icecandidate", (event) => {
 				description: localConnection.localDescription,
 				icecandidates: iceCandidates,
 			});
-		}, 100);
+		}, 1500);
 });
 
 // creating the local videochannel
@@ -695,12 +941,9 @@ sendChannel.onclose = (e) => {
 generateOffer.onclick = () => {
 	// creating an offer for the new datachannel
 
-	localConnection
-		.createOffer()
-		.then((offer) => {
-			localConnection.setLocalDescription(offer);
-		})
-		.then(() => {});
+	localConnection.createOffer().then((offer) => {
+		localConnection.setLocalDescription(offer);
+	});
 };
 confirmButton.onclick = () => {
 	const { description, icecandidates } = JSON.parse(answerBox.value);
@@ -733,8 +976,45 @@ document.getElementById("chat_text").addEventListener("keypress", async (event) 
 	}
 });
 
-// let Monitor = require("../../sprinklr-monitor-webrtc/build/index");
-let Monitor = require("monitor-webrtc-connection");
+document.getElementById("video-pause-button").addEventListener("click", () => {
+	toggleMediaOptionButtonColor(document.getElementById("video-pause-button"));
+
+	outBox.srcObject.getTracks()[1].enabled = !outBox.srcObject.getTracks()[1].enabled;
+});
+
+document.getElementById("audio-pause-button").addEventListener("click", () => {
+	toggleMediaOptionButtonColor(document.getElementById("audio-pause-button"));
+
+	outBox.srcObject.getTracks()[0].enabled = !outBox.srcObject.getTracks()[0].enabled;
+});
+function toggleMediaOptionButtonColor(element) {
+	if (element.style.backgroundColor == "#ff4646" || element.style.backgroundColor == hexToRGB("#ff4646"))
+		element.style.backgroundColor = "#49b568";
+	else element.style.backgroundColor = "#ff4646";
+}
+function hexToRGB(h) {
+	let r = 0,
+		g = 0,
+		b = 0;
+
+	// 3 digits
+	if (h.length == 4) {
+		r = "0x" + h[1] + h[1];
+		g = "0x" + h[2] + h[2];
+		b = "0x" + h[3] + h[3];
+
+		// 6 digits
+	} else if (h.length == 7) {
+		r = "0x" + h[1] + h[2];
+		g = "0x" + h[3] + h[4];
+		b = "0x" + h[5] + h[6];
+	}
+
+	return "rgb(" + +r + ", " + +g + ", " + +b + ")";
+}
+
+let Monitor = require("../../sprinklr-monitor-webrtc/build/index");
+// let Monitor = require("monitor-webrtc-connection");
 let CONFIGURABLE_PARAMETERS = {
 	SAMPLING_TIME_PERIOD: 1000,
 	REPORT_MAX_LENGTH: 500,
@@ -746,6 +1026,12 @@ let CONFIGURABLE_PARAMETERS = {
 let monitor = new Monitor.MonitorWebRTC(localConnection, CONFIGURABLE_PARAMETERS);
 monitor.eventEmitter.on("LOW_AUDIO", function (text) {
 	notifyInfo("Info ", "Low Audio");
+});
+monitor.eventEmitter.on("NO_OUTPUT_VIDEO_STREAM", function (text) {
+	notifyInfo("Info ", "No output video");
+});
+monitor.eventEmitter.on("NO_INPUT_VIDEO_STREAM", function (text) {
+	notifyInfo("Info ", "No input video");
 });
 monitor.eventEmitter.on("LOW_PACKETS_SENT", function (text) {
 	notifyInfo("Info ", "Low Packets Sent");
@@ -1255,7 +1541,7 @@ webRTC_dashboard();
 
 // export { localConnection };
 
-},{"monitor-webrtc-connection":5}],7:[function(require,module,exports){
+},{"../../sprinklr-monitor-webrtc/build/index":5}],7:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a

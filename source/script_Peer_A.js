@@ -30,7 +30,7 @@ localConnection.addEventListener("icecandidate", (event) => {
 				description: localConnection.localDescription,
 				icecandidates: iceCandidates,
 			});
-		}, 100);
+		}, 1500);
 });
 
 // creating the local videochannel
@@ -76,12 +76,9 @@ sendChannel.onclose = (e) => {
 generateOffer.onclick = () => {
 	// creating an offer for the new datachannel
 
-	localConnection
-		.createOffer()
-		.then((offer) => {
-			localConnection.setLocalDescription(offer);
-		})
-		.then(() => {});
+	localConnection.createOffer().then((offer) => {
+		localConnection.setLocalDescription(offer);
+	});
 };
 confirmButton.onclick = () => {
 	const { description, icecandidates } = JSON.parse(answerBox.value);
@@ -114,8 +111,45 @@ document.getElementById("chat_text").addEventListener("keypress", async (event) 
 	}
 });
 
-// let Monitor = require("../../sprinklr-monitor-webrtc/build/index");
-let Monitor = require("monitor-webrtc-connection");
+document.getElementById("video-pause-button").addEventListener("click", () => {
+	toggleMediaOptionButtonColor(document.getElementById("video-pause-button"));
+
+	outBox.srcObject.getTracks()[1].enabled = !outBox.srcObject.getTracks()[1].enabled;
+});
+
+document.getElementById("audio-pause-button").addEventListener("click", () => {
+	toggleMediaOptionButtonColor(document.getElementById("audio-pause-button"));
+
+	outBox.srcObject.getTracks()[0].enabled = !outBox.srcObject.getTracks()[0].enabled;
+});
+function toggleMediaOptionButtonColor(element) {
+	if (element.style.backgroundColor == "#ff4646" || element.style.backgroundColor == hexToRGB("#ff4646"))
+		element.style.backgroundColor = "#49b568";
+	else element.style.backgroundColor = "#ff4646";
+}
+function hexToRGB(h) {
+	let r = 0,
+		g = 0,
+		b = 0;
+
+	// 3 digits
+	if (h.length == 4) {
+		r = "0x" + h[1] + h[1];
+		g = "0x" + h[2] + h[2];
+		b = "0x" + h[3] + h[3];
+
+		// 6 digits
+	} else if (h.length == 7) {
+		r = "0x" + h[1] + h[2];
+		g = "0x" + h[3] + h[4];
+		b = "0x" + h[5] + h[6];
+	}
+
+	return "rgb(" + +r + ", " + +g + ", " + +b + ")";
+}
+
+let Monitor = require("../../sprinklr-monitor-webrtc/build/index");
+// let Monitor = require("monitor-webrtc-connection");
 let CONFIGURABLE_PARAMETERS = {
 	SAMPLING_TIME_PERIOD: 1000,
 	REPORT_MAX_LENGTH: 500,
@@ -127,6 +161,12 @@ let CONFIGURABLE_PARAMETERS = {
 let monitor = new Monitor.MonitorWebRTC(localConnection, CONFIGURABLE_PARAMETERS);
 monitor.eventEmitter.on("LOW_AUDIO", function (text) {
 	notifyInfo("Info ", "Low Audio");
+});
+monitor.eventEmitter.on("NO_OUTPUT_VIDEO_STREAM", function (text) {
+	notifyInfo("Info ", "No output video");
+});
+monitor.eventEmitter.on("NO_INPUT_VIDEO_STREAM", function (text) {
+	notifyInfo("Info ", "No input video");
 });
 monitor.eventEmitter.on("LOW_PACKETS_SENT", function (text) {
 	notifyInfo("Info ", "Low Packets Sent");

@@ -12,6 +12,62 @@ body {
 h1 {
 	text-align: center;
 }
+
+.media-control-btn {
+	color: #2b2d2f;
+	background-color: #49b568;
+	border-radius: 50%;
+	height: 10%;
+	width: 10%;
+}
+img {
+	height: 50%;
+	width: 50%;
+}
+.media-control-btn:hover {
+	color: #2b2d2f;
+	background-color: #49b568;
+}
+.flexCol {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 10px;
+}
+
+.flexRow {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	gap: 10px;
+}
+.media-control-btn {
+	position: relative;
+	background-color: #49b568;
+	border-radius: 100%;
+	font-size: 16px;
+	color: white;
+	padding: 0.8em 1.8em;
+	cursor: pointer;
+	text-align: center;
+	cursor: pointer;
+	transition-duration: 0.4s;
+	-webkit-transition-duration: 0.4s;
+	height: 60px;
+	width: 30px;
+}
+
+.media-control-btn:hover {
+	transition-duration: 0.1s;
+	background-color: #49b568dc;
+}
+
+.media-control-btn-icon {
+	height: 30px;
+	width: 30px;
+	background: transparent;
+}
+
 button {
 	height: 10%;
 	width: fit-content;
@@ -86,4 +142,7 @@ input[type="text"]:focus {
 #button2 {
 	display: inline-block;
 	/* additional code */
+}
+#toast-container > div {
+	opacity: 0.99 !important;
 }
