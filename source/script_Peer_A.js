@@ -5,7 +5,7 @@ const outBox = document.querySelector("#outgoing");
 const generateOffer = document.querySelector(".generate_offer");
 const confirmButton = document.querySelector(".accept_answer");
 
-var configuration = {
+let configuration = {
 	iceServers: [
 		{
 			urls: "stun:stun.l.google.com:19302",
@@ -159,52 +159,55 @@ let CONFIGURABLE_PARAMETERS = {
 };
 // creating new MonitorWebRTC instance
 let monitor = new Monitor.MonitorWebRTC(localConnection, CONFIGURABLE_PARAMETERS);
-monitor.eventEmitter.on("LOW_AUDIO", function (text) {
-	notifyInfo("Info ", "Low Audio");
+monitor.eventEmitter.on("LOW_AUDIO", function () {
+	notifyInfo("Info ", "Are you speaking? Your audio is quite low.");
 });
-monitor.eventEmitter.on("NO_OUTPUT_VIDEO_STREAM", function (text) {
-	notifyInfo("Info ", "No output video");
+monitor.eventEmitter.on("NO_AUDIO", function () {
+	notifyInfo("Info ", "Your mic is on mute.");
 });
-monitor.eventEmitter.on("NO_INPUT_VIDEO_STREAM", function (text) {
-	notifyInfo("Info ", "No input video");
+monitor.eventEmitter.on("NO_OUTPUT_VIDEO_STREAM", function () {
+	notifyInfo("Info ", "Your camera is off.");
 });
-monitor.eventEmitter.on("LOW_PACKETS_SENT", function (text) {
+monitor.eventEmitter.on("NO_INPUT_VIDEO_STREAM", function () {
+	notifyInfo("Info ", "Remote Peer has turned off camera.");
+});
+monitor.eventEmitter.on("LOW_PACKETS_SENT", function () {
 	notifyInfo("Info ", "Low Packets Sent");
 });
-monitor.eventEmitter.on("HIGH_RETRANSMITTED_PACKETS_SENT", function (text) {
+monitor.eventEmitter.on("HIGH_RETRANSMITTED_PACKETS_SENT", function () {
 	notifyInfo("Info ", "High Retransmitted Packets Sent");
 });
-monitor.eventEmitter.on("HIGH_INBOUND_PACKET_LOSS", function (text) {
+monitor.eventEmitter.on("HIGH_INBOUND_PACKET_LOSS", function () {
 	notifyInfo("Info ", "High Inbound Packet Loss");
 });
-monitor.eventEmitter.on("HIGH_REMOTE_INBOUND_PACKET_LOSS", function (text) {
+monitor.eventEmitter.on("HIGH_REMOTE_INBOUND_PACKET_LOSS", function () {
 	notifyInfo("Info ", "High Remote Inbound Packet Loss");
 });
-monitor.eventEmitter.on("HIGH_JITTER", function (text) {
+monitor.eventEmitter.on("HIGH_JITTER", function () {
 	notifyInfo("Info ", "High Jitter");
 });
-monitor.eventEmitter.on("HIGH_ROUND_TRIP_TIME", function (text) {
+monitor.eventEmitter.on("HIGH_ROUND_TRIP_TIME", function () {
 	notifyInfo("Info ", "High Round Trip Time");
 });
-monitor.eventEmitter.on("LOW_MOS_VALUE", function (text) {
+monitor.eventEmitter.on("LOW_MOS_VALUE", function () {
 	notifyInfo("Info ", "Low MOS Value");
 });
-monitor.eventEmitter.on("CONNECTION_PROBLEM", function (text) {
+monitor.eventEmitter.on("CONNECTION_PROBLEM", function () {
 	notifyWarning("Warning !!!", "Connection Problem");
 });
-monitor.eventEmitter.on("CONNECTED", function (text) {
+monitor.eventEmitter.on("CONNECTED", function () {
 	notifySuccess("Sucess !!! ", "Connection Established");
 });
-monitor.eventEmitter.on("NO_CONNECTION", function (text) {
+monitor.eventEmitter.on("NO_CONNECTION", function () {
 	notifyError("ALERT !!!", "No Connection");
 });
-monitor.eventEmitter.on("SLOW_CONNECTION", function (text) {
+monitor.eventEmitter.on("SLOW_CONNECTION", function () {
 	notifyInfo("Slow Connection", "Your internet is slow :(");
 });
 // Toastr
 function notifyInfo(title, msg) {
 	// Display an info toast with no title
-	toastr.info(msg, title, { timeOut: 1500 });
+	toastr.info(msg, title, { timeOut: 0 });
 }
 function notifySuccess(title, msg) {
 	// Display a success toast with no title
@@ -219,26 +222,64 @@ function notifyError(title, msg) {
 	toastr.error(msg, title, { timeOut: 0, extendedTimeOut: 0 });
 }
 
+function createAndPlotChart(chardId, chartLabel) {
+	let canvasDiv = document.createElement("div");
+	let canvas = document.createElement("canvas");
+	canvas.id = chardId;
+	canvas.style.border = "1px solid";
+	canvasDiv.appendChild(canvas);
+	canvasDiv.style.width = "500px";
+	canvasDiv.style.height = "260px";
+	let body = document.getElementsByTagName("body")[0];
+	body.appendChild(canvasDiv);
+	const ctx = document.getElementById(chardId).getContext("2d");
+	let myChart = new Chart(ctx, {
+		type: "line",
+		data: {
+			labels: [],
+			datasets: [
+				{
+					label: chartLabel,
+					data: [],
+				},
+			],
+		},
+		options: {
+			scales: {
+				y: {
+					beginAtZero: true,
+				},
+			},
+		},
+	});
+	return myChart;
+}
+
 function webRTC_dashboard() {
-	var myChart1;
-	var myChart2;
-	var myChart3;
-	var myChart4;
-	var myChart5;
-	var myChart6;
-	var myChart7;
-	var myChart8;
-	var myChart9;
-	var myChart10;
-	var myChart11;
-	var myChart12;
-	var myChart13;
+	let myChart1,
+		myChart2,
+		myChart3,
+		myChart4,
+		myChart5,
+		myChart6,
+		myChart7,
+		myChart8,
+		myChart9,
+		myChart10,
+		myChart11,
+		myChart12,
+		myChart13;
 
 	window.setInterval(function () {
 		if (monitor.checkIsConnection()) {
+			let selfMic = monitor.checkMicOn();
+			let remoteMic = monitor.checkRemotePeerMicOn();
+
 			let statsOutput = "";
 			statsOutput += `<h2>Report: Media Source </h2>\n`;
 			statsOutput += `<strong>Audio Level of Source :</strong> ${monitor.getAudioLevel()}<br>\n`;
+			statsOutput += `<strong>Your Mic status :</strong> ${selfMic ? "ON" : "OFF"}<br>\n`;
+			statsOutput += `<strong>Remote Peer Mic status :</strong> ${remoteMic ? "ON" : "OFF"}<br>\n`;
 			pushValue(myChart1, monitor.getAudioLevel());
 			statsOutput += `<h2>Report: Remote Inbound Source </h2>\n`;
 			statsOutput += `<strong>Jitter :</strong> ${monitor.getJitter()}<br>\n`;
@@ -277,389 +318,25 @@ function webRTC_dashboard() {
 	}, 1000);
 
 	setTimeout(function () {
-		var canvasDiv = document.createElement("div");
-		var canvas = document.createElement("canvas");
-		canvas.id = "myChart1";
-		canvas.style.border = "1px solid";
-		canvasDiv.appendChild(canvas);
-		canvasDiv.style.width = "500px";
-		canvasDiv.style.height = "260px";
-		var body = document.getElementsByTagName("body")[0];
-		body.appendChild(canvasDiv);
-		const ctx1 = document.getElementById("myChart1").getContext("2d");
-		myChart1 = new Chart(ctx1, {
-			type: "line",
-			data: {
-				labels: [],
-				datasets: [
-					{
-						label: "Audio Level of Source",
-						data: [],
-					},
-				],
-			},
-			options: {
-				scales: {
-					y: {
-						beginAtZero: true,
-					},
-				},
-			},
-		});
-		var canvasDiv = document.createElement("div");
-		var canvas = document.createElement("canvas");
-		canvas.id = "myChart2";
-		canvas.style.border = "1px solid";
-		canvasDiv.appendChild(canvas);
-		canvasDiv.style.width = "500px";
-		canvasDiv.style.height = "260px";
-		var body = document.getElementsByTagName("body")[0];
-		body.appendChild(canvasDiv);
-		const ctx2 = document.getElementById("myChart2").getContext("2d");
-		myChart2 = new Chart(ctx2, {
-			type: "line",
-			data: {
-				labels: [],
-				datasets: [
-					{
-						label: "Remote Inbound Jitter",
-						data: [],
-					},
-				],
-			},
-			options: {
-				scales: {
-					y: {
-						beginAtZero: true,
-					},
-				},
-			},
-		});
-		var canvasDiv = document.createElement("div");
-		var canvas = document.createElement("canvas");
-		canvas.id = "myChart3";
-		canvas.style.border = "1px solid";
-		canvasDiv.appendChild(canvas);
-		canvasDiv.style.width = "500px";
-		canvasDiv.style.height = "260px";
-		var body = document.getElementsByTagName("body")[0];
-		body.appendChild(canvasDiv);
-		const ctx3 = document.getElementById("myChart3").getContext("2d");
-		myChart3 = new Chart(ctx3, {
-			type: "line",
-			data: {
-				labels: [],
-				datasets: [
-					{
-						label: "Remote Inbound Round Trip Time",
-						data: [],
-					},
-				],
-			},
-			options: {
-				scales: {
-					y: {
-						beginAtZero: true,
-					},
-				},
-			},
-		});
-		var canvasDiv = document.createElement("div");
-		var canvas = document.createElement("canvas");
-		canvas.id = "myChart4";
-		canvas.style.border = "1px solid";
-		canvasDiv.appendChild(canvas);
-		canvasDiv.style.width = "500px";
-		canvasDiv.style.height = "260px";
-		var body = document.getElementsByTagName("body")[0];
-		body.appendChild(canvasDiv);
-		const ctx4 = document.getElementById("myChart4").getContext("2d");
-		myChart4 = new Chart(ctx4, {
-			type: "line",
-			data: {
-				labels: [],
-				datasets: [
-					{
-						label: "Inbound Packets Lost",
-						data: [],
-					},
-				],
-			},
-			options: {
-				scales: {
-					y: {
-						beginAtZero: true,
-					},
-				},
-			},
-		});
-		var canvasDiv = document.createElement("div");
-		var canvas = document.createElement("canvas");
-		canvas.id = "myChart5";
-		canvas.style.border = "1px solid";
-		canvasDiv.appendChild(canvas);
-		canvasDiv.style.width = "500px";
-		canvasDiv.style.height = "260px";
-		var body = document.getElementsByTagName("body")[0];
-		body.appendChild(canvasDiv);
-		const ctx5 = document.getElementById("myChart5").getContext("2d");
-		myChart5 = new Chart(ctx5, {
-			type: "line",
-			data: {
-				labels: [],
-				datasets: [
-					{
-						label: "Inbound Samples Inserted for Deceleration",
-						data: [],
-					},
-				],
-			},
-			options: {
-				scales: {
-					y: {
-						beginAtZero: true,
-					},
-				},
-			},
-		});
-		var canvasDiv = document.createElement("div");
-		var canvas = document.createElement("canvas");
-		canvas.id = "myChart6";
-		canvas.style.border = "1px solid";
-		canvasDiv.appendChild(canvas);
-		canvasDiv.style.width = "500px";
-		canvasDiv.style.height = "260px";
-		var body = document.getElementsByTagName("body")[0];
-		body.appendChild(canvasDiv);
-		const ctx6 = document.getElementById("myChart6").getContext("2d");
-		myChart6 = new Chart(ctx6, {
-			type: "line",
-			data: {
-				labels: [],
-				datasets: [
-					{
-						label: "Inbound Samples Removed for Acceleration",
-						data: [],
-					},
-				],
-			},
-			options: {
-				scales: {
-					y: {
-						beginAtZero: true,
-					},
-				},
-			},
-		});
-		var canvasDiv = document.createElement("div");
-		var canvas = document.createElement("canvas");
-		canvas.id = "myChart7";
-		canvas.style.border = "1px solid";
-		canvasDiv.appendChild(canvas);
-		canvasDiv.style.width = "500px";
-		canvasDiv.style.height = "260px";
-		var body = document.getElementsByTagName("body")[0];
-		body.appendChild(canvasDiv);
-		const ctx7 = document.getElementById("myChart7").getContext("2d");
-		myChart7 = new Chart(ctx7, {
-			type: "line",
-			data: {
-				labels: [],
-				datasets: [
-					{
-						label: "Outbound Packets Sent",
-						data: [],
-					},
-				],
-			},
-			options: {
-				scales: {
-					y: {
-						beginAtZero: true,
-					},
-				},
-			},
-		});
-		var canvasDiv = document.createElement("div");
-		var canvas = document.createElement("canvas");
-		canvas.id = "myChart8";
-		canvas.style.border = "1px solid";
-		canvasDiv.appendChild(canvas);
-		canvasDiv.style.width = "500px";
-		canvasDiv.style.height = "260px";
-		var body = document.getElementsByTagName("body")[0];
-		body.appendChild(canvasDiv);
-		const ctx8 = document.getElementById("myChart8").getContext("2d");
-		myChart8 = new Chart(ctx8, {
-			type: "line",
-			data: {
-				labels: [],
-				datasets: [
-					{
-						label: "Outbound Retransmitted Packets Sent",
-						data: [],
-					},
-				],
-			},
-			options: {
-				scales: {
-					y: {
-						beginAtZero: true,
-					},
-				},
-			},
-		});
-		var canvasDiv = document.createElement("div");
-		var canvas = document.createElement("canvas");
-		canvas.id = "myChart9";
-		canvas.style.border = "1px solid";
-		canvasDiv.appendChild(canvas);
-		canvasDiv.style.width = "500px";
-		canvasDiv.style.height = "260px";
-		var body = document.getElementsByTagName("body")[0];
-		body.appendChild(canvasDiv);
-		const ctx9 = document.getElementById("myChart9").getContext("2d");
-		myChart9 = new Chart(ctx9, {
-			type: "line",
-			data: {
-				labels: [],
-				datasets: [
-					{
-						label: "Round Trip Time Remote Outbound",
-						data: [],
-					},
-				],
-			},
-			options: {
-				scales: {
-					y: {
-						beginAtZero: true,
-					},
-				},
-			},
-		});
-		var canvasDiv = document.createElement("div");
-		var canvas = document.createElement("canvas");
-		canvas.id = "myChart10";
-		canvas.style.border = "1px solid";
-		canvasDiv.appendChild(canvas);
-		canvasDiv.style.width = "500px";
-		canvasDiv.style.height = "260px";
-		var body = document.getElementsByTagName("body")[0];
-		body.appendChild(canvasDiv);
-		const ctx10 = document.getElementById("myChart10").getContext("2d");
-		myChart10 = new Chart(ctx10, {
-			type: "line",
-			data: {
-				labels: [],
-				datasets: [
-					{
-						label: "Availabe Outgoing Bitrate for the Connection",
-						data: [],
-					},
-				],
-			},
-			options: {
-				scales: {
-					y: {
-						beginAtZero: true,
-					},
-				},
-			},
-		});
-		var canvasDiv = document.createElement("div");
-		var canvas = document.createElement("canvas");
-		canvas.id = "myChart11";
-		canvas.style.border = "1px solid";
-		canvasDiv.appendChild(canvas);
-		canvasDiv.style.width = "500px";
-		canvasDiv.style.height = "260px";
-		var body = document.getElementsByTagName("body")[0];
-		body.appendChild(canvasDiv);
-		const ctx11 = document.getElementById("myChart11").getContext("2d");
-		myChart11 = new Chart(ctx11, {
-			type: "line",
-			data: {
-				labels: [],
-				datasets: [
-					{
-						label: "Current Round Trip Time for the Connection",
-						data: [],
-					},
-				],
-			},
-			options: {
-				scales: {
-					y: {
-						beginAtZero: true,
-					},
-				},
-			},
-		});
-		var canvasDiv = document.createElement("div");
-		var canvas = document.createElement("canvas");
-		canvas.id = "myChart12";
-		canvas.style.border = "1px solid";
-		canvasDiv.appendChild(canvas);
-		canvasDiv.style.width = "500px";
-		canvasDiv.style.height = "260px";
-		var body = document.getElementsByTagName("body")[0];
-		body.appendChild(canvasDiv);
-		const ctx12 = document.getElementById("myChart12").getContext("2d");
-		myChart12 = new Chart(ctx12, {
-			type: "line",
-			data: {
-				labels: [],
-				datasets: [
-					{
-						label: "Packets Received by the Connection",
-						data: [],
-					},
-				],
-			},
-			options: {
-				scales: {
-					y: {
-						beginAtZero: true,
-					},
-				},
-			},
-		});
-		var canvasDiv = document.createElement("div");
-		var canvas = document.createElement("canvas");
-		canvas.id = "myChart13";
-		canvas.style.border = "1px solid";
-		canvasDiv.appendChild(canvas);
-		canvasDiv.style.width = "500px";
-		canvasDiv.style.height = "260px";
-		var body = document.getElementsByTagName("body")[0];
-		body.appendChild(canvasDiv);
-		const ctx13 = document.getElementById("myChart13").getContext("2d");
-		myChart13 = new Chart(ctx13, {
-			type: "line",
-			data: {
-				labels: [],
-				datasets: [
-					{
-						label: "Packets Sent by the Connection",
-						data: [],
-					},
-				],
-			},
-			options: {
-				scales: {
-					y: {
-						beginAtZero: true,
-					},
-				},
-			},
-		});
+		myChart1 = createAndPlotChart("myChart1", "Audio Level of Source");
+		myChart2 = createAndPlotChart("myChart2", "Remote Inbound Jitter");
+		myChart3 = createAndPlotChart("myChart3", "Remote Inbound Round Trip Time");
+		myChart4 = createAndPlotChart("myChart4", "Inbound Packets Lost");
+		myChart5 = createAndPlotChart("myChart5", "Inbound Samples Inserted for Deceleration");
+		myChart6 = createAndPlotChart("myChart6", "Inbound Samples Removed for Acceleration");
+		myChart7 = createAndPlotChart("myChart7", "Outbound Packets Sent");
+		myChart8 = createAndPlotChart("myChart8", "Outbound Retransmitted Packets Sent");
+		myChart9 = createAndPlotChart("myChart9", "Round Trip Time Remote Outbound");
+		myChart10 = createAndPlotChart("myChart10", "Availabe Outgoing Bitrate for the Connection");
+		myChart11 = createAndPlotChart("myChart11", "Current Round Trip Time for the Connection");
+		myChart12 = createAndPlotChart("myChart12", "Packets Received by the Connection");
+		myChart13 = createAndPlotChart("myChart13", "Packets Sent by the Connection");
 	}, 500);
 
 	function pushValue(myChart, x) {
 		myChart.data.datasets[0].data.push(x);
 		// console.log(x);
-		var currTime = new Date().toLocaleTimeString();
+		let currTime = new Date().toLocaleTimeString();
 		myChart.data.labels.push(currTime);
 		myChart.update();
 		if (myChart.data.datasets[0].data.length == 20) {
