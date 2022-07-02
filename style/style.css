@@ -1,6 +1,9 @@
 body {
 	font-family: helvetica, arial, sans-serif;
 	font-size: 16px;
+	background-image: url("https://images.pexels.com/photos/2061219/pexels-photo-2061219.jpeg");
+	background-size: 100% 23%;
+	background-repeat: no-repeat;
 }
 .heading_peer {
 	font-size: 24pt;
