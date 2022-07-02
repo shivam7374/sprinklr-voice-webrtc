@@ -878,22 +878,20 @@ const MonitorWebRTCClass = require("./MonitorWebRTC");
 module.exports = { MonitorWebRTC: MonitorWebRTCClass.MonitorWebRTC };
 
 },{"./MonitorWebRTC":1}],6:[function(require,module,exports){
-const offerBox = document.querySelector("#local_address");
-const answerBox = document.querySelector("#remote_address");
+const offerBox = document.querySelector("#remote_address");
+const answerBox = document.querySelector("#local_address");
 const inBox = document.querySelector("#incoming");
 const outBox = document.querySelector("#outgoing");
-const generateOffer = document.querySelector(".generate_offer");
-const confirmButton = document.querySelector(".accept_answer");
+const confirmButton = document.querySelector(".offer_entered");
 
-let configuration = {
+var configuration = {
 	iceServers: [
 		{
 			urls: "stun:stun.l.google.com:19302",
 		},
 	],
 };
-let localConnection;
-localConnection = new RTCPeerConnection(configuration);
+const localConnection = new RTCPeerConnection(configuration);
 
 // adding event listeners for icecandidate
 const iceCandidates = [];
@@ -901,7 +899,7 @@ localConnection.addEventListener("icecandidate", (event) => {
 	if (event.candidate) iceCandidates.push(event.candidate);
 	else
 		setTimeout(() => {
-			offerBox.value = JSON.stringify({
+			answerBox.value = JSON.stringify({
 				description: localConnection.localDescription,
 				icecandidates: iceCandidates,
 			});
@@ -930,41 +928,39 @@ localConnection.addEventListener("track", async (event) => {
 	const [remoteStream] = event.streams;
 	inBox.srcObject = remoteStream;
 });
-const sendChannel = localConnection.createDataChannel("sendChannel");
 
-sendChannel.onmessage = (e) => {
-	let chatBox = document.querySelector(".chat");
-	chatBox.innerHTML += `Message Received From Device B : ${e.data}` + "<br />";
-};
-
-sendChannel.onopen = (e) => {
-	let chatBox = document.querySelector(".chat");
-	// chatBox.innerHTML += "Communication Established Now you can Chat !!! <br />";
-	document.querySelector(".send_response").disabled = false;
-};
-
-sendChannel.onclose = (e) => {
-	let chatBox = document.querySelector(".chat");
-	chatBox.innerHTML += "closed!!!!!!";
-};
-
-generateOffer.onclick = () => {
-	// creating an offer for the new datachannel
-
-	localConnection.createOffer().then((offer) => {
-		localConnection.setLocalDescription(offer);
-	});
-};
-confirmButton.onclick = () => {
-	const { description, icecandidates } = JSON.parse(answerBox.value);
+confirmButton.onclick = (event) => {
+	const { description, icecandidates } = JSON.parse(offerBox.value);
+	// offerBox.setAttribute("readonly", "true");
 
 	// accepting the offer
-	localConnection.setRemoteDescription(description);
+	localConnection.setRemoteDescription(description).then(() => {});
 
 	// adding proposed icecandidates
 	icecandidates.forEach((candidate) => {
 		localConnection.addIceCandidate(new RTCIceCandidate(candidate));
 	});
+	var receiveChannel;
+	localConnection.ondatachannel = (e) => {
+		receiveChannel = e.channel;
+
+		receiveChannel.onmessage = (e) => {
+			let chatBox = document.querySelector(".chat");
+			chatBox.innerHTML += `Message Recieved From Device A : ${e.data}` + "<br />";
+		};
+
+		receiveChannel.onopen = (e) => {
+			let chatBox = document.querySelector(".chat");
+			// chatBox.innerHTML += "Communication Established Now you can Chat !!! <br />";
+			document.querySelector(".send_response").disabled = false;
+		};
+		receiveChannel.onclose = (e) => {
+			let chatBox = document.querySelector(".chat");
+			chatBox.innerHTML += "closed!!!!!!!";
+		};
+		localConnection.channel = receiveChannel;
+	};
+	localConnection.createAnswer().then((answer) => localConnection.setLocalDescription(answer));
 };
 
 document.querySelector(".send_response").addEventListener("click", async () => {
@@ -972,7 +968,7 @@ document.querySelector(".send_response").addEventListener("click", async () => {
 	const text = document.createElement("div");
 	text.innerHTML = "Message Sent By You : " + document.getElementById("chat_text").value;
 	document.querySelector(".chat").appendChild(text);
-	sendChannel.send(response);
+	localConnection.channel.send(response);
 });
 
 // send message on hitting enter
@@ -982,7 +978,7 @@ document.getElementById("chat_text").addEventListener("keypress", async (event) 
 		const text = document.createElement("div");
 		text.innerHTML = "Message Sent By You : " + document.getElementById("chat_text").value;
 		document.querySelector(".chat").appendChild(text);
-		sendChannel.send(response);
+		localConnection.channel.send(response);
 	}
 });
 
