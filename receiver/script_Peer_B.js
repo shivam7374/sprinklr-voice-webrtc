@@ -78,7 +78,7 @@ confirmButton.onclick = (event) => {
 
 		receiveChannel.onopen = (e) => {
 			let chatBox = document.querySelector(".chat");
-			chatBox.innerHTML += "Communication Established Now you can Chat !!! <br />";
+			// chatBox.innerHTML += "Communication Established Now you can Chat !!! <br />";
 			document.querySelector(".send_response").disabled = false;
 		};
 		receiveChannel.onclose = (e) => {

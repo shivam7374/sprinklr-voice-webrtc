@@ -64,7 +64,7 @@ sendChannel.onmessage = (e) => {
 
 sendChannel.onopen = (e) => {
 	let chatBox = document.querySelector(".chat");
-	chatBox.innerHTML += "Communication Established Now you can Chat !!! <br />";
+	// chatBox.innerHTML += "Communication Established Now you can Chat !!! <br />";
 	document.querySelector(".send_response").disabled = false;
 };
 
@@ -224,14 +224,16 @@ function notifyError(title, msg) {
 
 function createAndPlotChart(chardId, chartLabel) {
 	let canvasDiv = document.createElement("div");
+	canvasDiv.className = "individualChart";
 	let canvas = document.createElement("canvas");
 	canvas.id = chardId;
+
 	canvas.style.border = "1px solid";
 	canvasDiv.appendChild(canvas);
-	canvasDiv.style.width = "500px";
+	canvasDiv.style.width = "450px";
 	canvasDiv.style.height = "260px";
-	let body = document.getElementsByTagName("body")[0];
-	body.appendChild(canvasDiv);
+	let chartsDiv = document.getElementsByClassName("charts")[0];
+	chartsDiv.appendChild(canvasDiv);
 	const ctx = document.getElementById(chardId).getContext("2d");
 	let myChart = new Chart(ctx, {
 		type: "line",
@@ -268,39 +270,55 @@ function webRTC_dashboard() {
 		myChart10,
 		myChart11,
 		myChart12,
-		myChart13;
+		myChart13,
+		myChart14,
+		myChart15,
+		myChart16,
+		myChart17,
+		myChart18,
+		myChart19,
+		myChart20,
+		myChart21,
+		myChart22,
+		myChart23,
+		myChart24,
+		myChart25,
+		myChart26,
+		myChart27,
+		myChart28;
 
 	window.setInterval(function () {
 		if (monitor.checkIsConnection()) {
 			let selfMic = monitor.checkMicOn();
-			let remoteMic = monitor.checkRemotePeerMicOn();
 
 			let statsOutput = "";
+			statsOutput += `<h1>Parameters for Audio </h1>\n`;
 			statsOutput += `<h2>Report: Media Source </h2>\n`;
 			statsOutput += `<strong>Audio Level of Source :</strong> ${monitor.getAudioLevel()}<br>\n`;
 			statsOutput += `<strong>Your Mic status :</strong> ${selfMic ? "ON" : "OFF"}<br>\n`;
-			statsOutput += `<strong>Remote Peer Mic status :</strong> ${remoteMic ? "ON" : "OFF"}<br>\n`;
 			pushValue(myChart1, monitor.getAudioLevel());
-			statsOutput += `<h2>Report: Remote Inbound Source </h2>\n`;
+			statsOutput += `<h2>Report: Remote Inbound Stream </h2>\n`;
 			statsOutput += `<strong>Jitter :</strong> ${monitor.getJitter()}<br>\n`;
 			pushValue(myChart2, monitor.getJitter());
 			statsOutput += `<strong>Round Trip Time :</strong> ${monitor.getRTTRemoteInbound()}<br>\n`;
 			pushValue(myChart3, monitor.getRTTRemoteInbound());
-			statsOutput += `<h2>Report: Inbound Source </h2>\n`;
+			statsOutput += `<h2>Report: Inbound Stream </h2>\n`;
 			statsOutput += `<strong>Packets Lost :</strong> ${monitor.getPacketsLostInbound()}<br>\n`;
 			pushValue(myChart4, monitor.getPacketsLostInbound());
 			statsOutput += `<strong>Samples Inserted for Deceleration :</strong> ${monitor.getInsertedSamplesForDeceleration()}<br>\n`;
 			pushValue(myChart5, monitor.getInsertedSamplesForDeceleration());
 			statsOutput += `<strong>Samples Removed for Acceleration :</strong> ${monitor.getRemovedSamplesForAcceleration()}<br>\n`;
 			pushValue(myChart6, monitor.getRemovedSamplesForAcceleration());
-			statsOutput += `<h2>Report: Outbound Source </h2>\n`;
+			statsOutput += `<h2>Report: Outbound Stream </h2>\n`;
 			statsOutput += `<strong>Packets Sent :</strong> ${monitor.getPacketsSentOutbound()}<br>\n`;
 			pushValue(myChart7, monitor.getPacketsSentOutbound());
 			statsOutput += `<strong>Retransmitted Packets Sent :</strong> ${monitor.getRetransmittedPacketsSentOutbound()}<br>\n`;
 			pushValue(myChart8, monitor.getRetransmittedPacketsSentOutbound());
-			statsOutput += `<h2>Report: Remote Outbound Source </h2>\n`;
+			statsOutput += `<h2>Report: Remote Outbound Stream </h2>\n`;
 			statsOutput += `<strong>Round Trip Time :</strong> ${monitor.getRTTRemoteOutbound()}<br>\n`;
 			pushValue(myChart9, monitor.getRTTRemoteOutbound());
+
+			statsOutput += `<h1>Realtime Connection Parameters</h2>\n`;
 			statsOutput += `<h2>Report: ICE Candidate Pair </h2>\n`;
 			statsOutput += `<strong>Availabe Outgoing Bitrate for the Connection :</strong> ${monitor.getAvailableOutgoingBitrateICECandidate()}<br>\n`;
 			pushValue(myChart10, monitor.getAvailableOutgoingBitrateICECandidate());
@@ -310,6 +328,41 @@ function webRTC_dashboard() {
 			pushValue(myChart12, monitor.getPacketsReceivedICECandidate());
 			statsOutput += `<strong>Packets Sent by the Connection :</strong> ${monitor.getPacketsSentICECandidate()}<br>\n`;
 			pushValue(myChart13, monitor.getPacketsSentICECandidate());
+			statsOutput += `<strong>Mean Opinion Score Video :</strong> ${monitor.getMeanOpinionScoreVideo()}<br>\n`;
+			pushValue(myChart21, monitor.getMeanOpinionScoreVideo());
+			statsOutput += `<strong>Mean Opinion Score Audio :</strong> ${monitor.getMeanOpinionScore()}<br>\n`;
+			pushValue(myChart28, monitor.getMeanOpinionScore());
+
+			statsOutput += `<h1>Video Parameters</h2>\n`;
+			statsOutput += `<h2>Report: Inbound Stream </h2>\n`;
+			statsOutput += `<strong>Frame height of Inbound stream :</strong> ${monitor.getFrameHeightInboundVideo()}<br>\n`;
+			pushValue(myChart14, monitor.getFrameHeightInboundVideo());
+			statsOutput += `<strong>Frame width of Inbound stream :</strong> ${monitor.getFrameWidthInboundVideo()}<br>\n`;
+			pushValue(myChart16, monitor.getFrameWidthInboundVideo());
+			statsOutput += `<strong>Number of frames recieved in inbound stream :</strong> ${monitor.getFramesReceivedInboundVideo()}<br>\n`;
+			pushValue(myChart18, monitor.getFramesReceivedInboundVideo());
+			statsOutput += `<strong>Number of packets lost in inbound stream :</strong> ${monitor.getPacketsLostInboundVideo()}<br>\n`;
+			pushValue(myChart22, monitor.getPacketsLostInboundVideo());
+			statsOutput += `<strong>>Number of packets received in inbound stream :</strong> ${monitor.getPacketsReceivedInboundVideo()}<br>\n`;
+			pushValue(myChart24, monitor.getPacketsReceivedInboundVideo());
+			statsOutput += `<h2>Report: Outbound Stream </h2>\n`;
+			statsOutput += `<strong>Frame height of Outbound stream :</strong> ${monitor.getFrameHeightOutboundVideo()}<br>\n`;
+			pushValue(myChart15, monitor.getFrameHeightOutboundVideo());
+			statsOutput += `<strong>Frame width of Outbound stream :</strong> ${monitor.getFrameWidthOutboundVideo()}<br>\n`;
+			pushValue(myChart17, monitor.getFrameWidthOutboundVideo());
+			statsOutput += `<strong>Number of frames sent by outbound stream :</strong> ${monitor.getFramesSentOutboundVideo()}<br>\n`;
+			pushValue(myChart19, monitor.getFramesSentOutboundVideo());
+			statsOutput += `<strong>Number of packets Sent by the outbound stream :</strong> ${monitor.getPacketsSentOutboundVideo()}<br>\n`;
+			pushValue(myChart25, monitor.getPacketsSentOutboundVideo());
+			statsOutput += `<strong>Number of retransmitted packets Sent by the outbound stream :</strong> ${monitor.getRetransmittedPacketsSentOutboundVideo()}<br>\n`;
+			pushValue(myChart27, monitor.getRetransmittedPacketsSentOutboundVideo());
+			statsOutput += `<h2>Report: Remote Inbound Stream </h2>\n`;
+			statsOutput += `<strong>Jitter from Remote inbound stream :</strong> ${monitor.getJitterVideo()}<br>\n`;
+			pushValue(myChart20, monitor.getJitterVideo());
+			statsOutput += `<strong>Number of packets lost by remote inbound stream :</strong> ${monitor.getPacketsLostRemoteInboundVideo()}<br>\n`;
+			pushValue(myChart23, monitor.getPacketsLostRemoteInboundVideo());
+			statsOutput += `<strong>Round trip time from remote inbound stream :</strong> ${monitor.getRTTRemoteInboundVideo()}<br>\n`;
+			pushValue(myChart26, monitor.getRTTRemoteInboundVideo());
 
 			document.querySelector(".stats-box").innerHTML = statsOutput;
 		} else {
@@ -318,7 +371,7 @@ function webRTC_dashboard() {
 	}, 1000);
 
 	setTimeout(function () {
-		myChart1 = createAndPlotChart("myChart1", "Audio Level of Source");
+		myChart1 = createAndPlotChart("myChart1", "Audio Level of Stream");
 		myChart2 = createAndPlotChart("myChart2", "Remote Inbound Jitter");
 		myChart3 = createAndPlotChart("myChart3", "Remote Inbound Round Trip Time");
 		myChart4 = createAndPlotChart("myChart4", "Inbound Packets Lost");
@@ -327,10 +380,27 @@ function webRTC_dashboard() {
 		myChart7 = createAndPlotChart("myChart7", "Outbound Packets Sent");
 		myChart8 = createAndPlotChart("myChart8", "Outbound Retransmitted Packets Sent");
 		myChart9 = createAndPlotChart("myChart9", "Round Trip Time Remote Outbound");
+
 		myChart10 = createAndPlotChart("myChart10", "Availabe Outgoing Bitrate for the Connection");
 		myChart11 = createAndPlotChart("myChart11", "Current Round Trip Time for the Connection");
 		myChart12 = createAndPlotChart("myChart12", "Packets Received by the Connection");
 		myChart13 = createAndPlotChart("myChart13", "Packets Sent by the Connection");
+		myChart21 = createAndPlotChart("myChart21", "Mean Opinion Score Video");
+		myChart28 = createAndPlotChart("myChart28", "Mean Opinion Score Audio");
+
+		myChart14 = createAndPlotChart("myChart14", "Frame height of Inbound stream");
+		myChart16 = createAndPlotChart("myChart16", "Number of frames recieved in inbound stream");
+		myChart18 = createAndPlotChart("myChart18", "Number of frames recieved in inbound stream");
+		myChart22 = createAndPlotChart("myChart22", "Number of packets lost in inbound stream");
+		myChart24 = createAndPlotChart("myChart24", "Number of packets received in inbound stream");
+		myChart15 = createAndPlotChart("myChart15", "Frame height of Outbound stream");
+		myChart17 = createAndPlotChart("myChart17", "Frame width of Outbound stream");
+		myChart19 = createAndPlotChart("myChart19", "Number of frames sent by outbound stream");
+		myChart25 = createAndPlotChart("myChart25", "Number of packets Sent by the outbound stream");
+		myChart27 = createAndPlotChart("myChart27", "Number of retransmitted packets Sent by the outbound stream");
+		myChart20 = createAndPlotChart("myChart20", "Jitter from Remote inbound stream");
+		myChart23 = createAndPlotChart("myChart23", "Number of packets lost by remote inbound stream");
+		myChart26 = createAndPlotChart("myChart26", "Round trip time from remote inbound stream");
 	}, 500);
 
 	function pushValue(myChart, x) {

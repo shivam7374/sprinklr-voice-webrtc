@@ -146,3 +146,12 @@ input[type="text"]:focus {
 #toast-container > div {
 	opacity: 0.99 !important;
 }
+.charts {
+	text-align: center;
+}
+.individualChart {
+	display: inline-block;
+	margin: 10px;
+	justify-content: center;
+	text-align: center;
+}
