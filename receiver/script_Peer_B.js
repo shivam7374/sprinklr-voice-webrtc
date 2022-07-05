@@ -160,8 +160,8 @@ let Monitor = require("monitor-webrtc-connection");
 let CONFIGURABLE_PARAMETERS = {
 	SAMPLING_TIME_PERIOD: 1000,
 	REPORT_MAX_LENGTH: 500,
-	EVENT_EMIT_TIME_PERIOD: 3000,
-	STRIKES_THRESHOLD: 3,
+	EVENT_EMIT_TIME_PERIOD: 5000,
+	STRIKES_THRESHOLD: 5,
 	LOGGER_FUNCTION: console.log,
 };
 // creating new MonitorWebRTC instance
