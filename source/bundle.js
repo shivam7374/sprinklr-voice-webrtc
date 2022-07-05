@@ -78,10 +78,10 @@ class MonitorWebRTC {
     // event listeners for connection state changes
     connectionStateChangeHandler() {
         this.peerConnection.addEventListener(constants.CONNECTION_STATE_CHANGE, (event) => {
-            if (event.currentTarget.connectionState === constants.DISCONNECTED) {
+            if (this.connectedAtleastOnce === true && event.currentTarget.connectionState === constants.DISCONNECTED) {
                 this.triggerHandler(constants.EVENT.CONNECTION_PROBLEM);
             }
-            else if (event.currentTarget.connectionState === constants.FAILED) {
+            else if (this.connectedAtleastOnce === true && event.currentTarget.connectionState === constants.FAILED) {
                 this.triggerHandler(constants.EVENT.NO_CONNECTION);
             }
             else if (event.currentTarget.connectionState === constants.CONNECTED) {
@@ -520,7 +520,7 @@ class MonitorWebRTC {
         let flag = this.strikerPacketsSentPerSecondVideo.updateEventStrikes(category);
         if (flag === 1) {
             this.triggerHandler(constants.EVENT.LOW_PACKETS_SENT_VIDEO);
-            this.triggerHandler(constants.EVENT.OUTPUT_VIDEO_STREAM_OFF);
+            this.triggerHandler(constants.EVENT.REMOTE_PEER_VIDEO_STREAM_OFF);
         }
         return category;
     }
@@ -537,10 +537,10 @@ class MonitorWebRTC {
         let flag = this.strikerPacketsReceivedPerSecondVideo.updateEventStrikes(category);
         if (flag === 1) {
             this.triggerHandler(constants.EVENT.LOW_PACKETS_RECEIVED_VIDEO);
-            this.triggerHandler(constants.EVENT.INPUT_VIDEO_STREAM_OFF);
+            this.triggerHandler(constants.EVENT.LOCAL_PEER_VIDEO_STREAM_OFF);
         }
         if (this.strikerPacketsReceivedPerSecondVideo.getStrikes() === 0) {
-            this.triggerHandler(constants.EVENT.INPUT_VIDEO_STREAM_ON);
+            this.triggerHandler(constants.EVENT.LOCAL_PEER_VIDEO_STREAM_ON);
         }
         return category;
     }
@@ -785,14 +785,14 @@ const PACKETS_SENT_OUTBOUND_THRESHOLD_VIDEO = { THRESHOLD: 35 };
 const PACKETS_RECEIVED_INBOUND_THRESHOLD_VIDEO = { THRESHOLD: 35 };
 const PACKETS_LOST_PERCENTAGE_THRESHOLD_VIDEO = { THRESHOLD: 2.44 };
 const RETRANSMITTED_PACKETS_SENT_OUTBOUND_THRESHOLD = { THRESHOLD: 2 };
-const RETRANSMITTED_PACKETS_SENT_OUTBOUND_THRESHOLD_VIDEO = { THRESHOLD: 6 };
+const RETRANSMITTED_PACKETS_SENT_OUTBOUND_THRESHOLD_VIDEO = { THRESHOLD: 10 };
 const PACKETS_SENT_OUTBOUND_THRESHOLD_ICE = { THRESHOLD: 10 };
 const PACKETS_RECEIVED_OUTBOUND_THRESHOLD_ICE = { THRESHOLD: 10 };
 const EVENT = {
     SLOW_CONNECTION: "SLOW_CONNECTION",
-    INPUT_VIDEO_STREAM_OFF: "INPUT_VIDEO_STREAM_OFF",
-    INPUT_VIDEO_STREAM_ON: "INPUT_VIDEO_STREAM_ON",
-    OUTPUT_VIDEO_STREAM_OFF: "OUTPUT_VIDEO_STREAM_OFF",
+    LOCAL_PEER_VIDEO_STREAM_OFF: "LOCAL_PEER_VIDEO_STREAM_OFF",
+    LOCAL_PEER_VIDEO_STREAM_ON: "LOCAL_PEER_VIDEO_STREAM_ON",
+    REMOTE_PEER_VIDEO_STREAM_OFF: "REMOTE_PEER_VIDEO_STREAM_OFF",
     LOW_AUDIO: "LOW_AUDIO",
     NO_CONNECTION: "NO_CONNECTION",
     LOW_PACKETS_SENT: "LOW_PACKETS_SENT",
