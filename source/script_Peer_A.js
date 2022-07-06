@@ -53,8 +53,16 @@ localConnection.addEventListener("track", async (event) => {
 const sendChannel = localConnection.createDataChannel("sendChannel");
 
 sendChannel.onmessage = (e) => {
-	let chatBox = document.querySelector(".chat");
-	chatBox.innerHTML += `Message Received From Device B : ${e.data}` + "<br />";
+	const response = e.data;
+	const text = document.createElement("p");
+	text.innerHTML = response;
+	const innerDiv = document.createElement("div");
+	innerDiv.className = "chat-log_message";
+	innerDiv.appendChild(text);
+	const outerDiv = document.createElement("div");
+	outerDiv.className = "chat-log_item";
+	outerDiv.appendChild(innerDiv);
+	document.querySelector("#messages_container").appendChild(outerDiv);
 };
 
 sendChannel.onopen = (e) => {
@@ -89,20 +97,38 @@ confirmButton.onclick = () => {
 
 document.querySelector(".send_response").addEventListener("click", async () => {
 	const response = document.getElementById("chat_text").value;
-	const text = document.createElement("div");
-	text.innerHTML = "Message Sent By You : " + document.getElementById("chat_text").value;
-	document.querySelector(".chat").appendChild(text);
+	const text = document.createElement("p");
+	text.innerHTML = response;
+	const innerDiv = document.createElement("div");
+	innerDiv.className = "chat-log_message";
+	innerDiv.appendChild(text);
+	const outerDiv = document.createElement("div");
+	outerDiv.className = "chat-log_item";
+	outerDiv.classList.add("chat-log_item-own");
+	outerDiv.appendChild(innerDiv);
+
+	document.querySelector("#messages_container").appendChild(outerDiv);
 	sendChannel.send(response);
+	document.getElementById("chat_text").value = "";
 });
 
 // send message on hitting enter
 document.getElementById("chat_text").addEventListener("keypress", async (event) => {
 	if (event.key == "Enter") {
 		const response = document.getElementById("chat_text").value;
-		const text = document.createElement("div");
-		text.innerHTML = "Message Sent By You : " + document.getElementById("chat_text").value;
-		document.querySelector(".chat").appendChild(text);
+		const text = document.createElement("p");
+		text.innerHTML = response;
+		const innerDiv = document.createElement("div");
+		innerDiv.className = "chat-log_message";
+		innerDiv.appendChild(text);
+		const outerDiv = document.createElement("div");
+		outerDiv.className = "chat-log_item";
+		outerDiv.classList.add("chat-log_item-own");
+		outerDiv.appendChild(innerDiv);
+
+		document.querySelector("#messages_container").appendChild(outerDiv);
 		sendChannel.send(response);
+		document.getElementById("chat_text").value = "";
 	}
 });
 

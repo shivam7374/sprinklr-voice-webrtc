@@ -1,17 +1,13 @@
 body {
 	font-family: helvetica, arial, sans-serif;
 	font-size: 16px;
-	/* background-image: url("https://images.pexels.com/photos/2061219/pexels-photo-2061219.jpeg"); */
-	/* background-size: 100% 23%; */
 	background-color: #2f3840;
 	color: white;
-	/* background-repeat: no-repeat; */
 }
 .heading_peer {
 	font-size: 24pt;
 	font-family: "Trebuchet MS";
 	color: white;
-	/* border-bottom: 2px dashed #e3052d; */
 	font-style: italic;
 }
 h1 {
@@ -148,7 +144,6 @@ input[type="text"]:focus {
 #button1,
 #button2 {
 	display: inline-block;
-	/* additional code */
 }
 #toast-container > div {
 	opacity: 0.99 !important;
@@ -175,6 +170,7 @@ a {
 	box-shadow: 0 0px 25px rgba(0, 0, 0, 0.2);
 }
 
+/* chat box styling */
 .chat-log {
 	overflow: auto;
 	height: calc(75vh);
@@ -186,9 +182,10 @@ a {
 	padding: 10px;
 	margin: 10px;
 	max-width: 95%;
-	min-width: 25%;
+	min-width: 3%;
 	float: left;
-	font-size: 13px;
+	font-size: 17px;
+	font: proxima nova;
 	border-radius: 0 20px 20px 20px;
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 	clear: both;
@@ -223,24 +220,33 @@ a {
 	opacity: 0.5;
 }
 #messages_container {
-	/* background-color: #fff; */
 	border: 2px solid white;
 	border-radius: 5px;
-	/* padding: 2px; */
-	margin: 100px;
+	margin-right: 100px;
+	margin-left: 100px;
 	height: 500px;
 }
 .heading_peer {
 	padding-top: 0%;
-	margin-top: -100px;
 	margin-left: 100px;
 	margin-right: 100px;
 }
 #chat_text {
-	width: 87%;
-	margin-left: 100px;
+	width: 88%;
+	margin-left: 6%;
 }
 .send_response {
-	margin-left: 100px;
+	margin-left: 6%;
 	margin-right: 100px;
+}
+
+/* general css */
+.stats-box {
+	margin: 10px;
+	padding-left: 20px;
+}
+
+input {
+	background-color: #2f3840;
+	color: white;
 }
