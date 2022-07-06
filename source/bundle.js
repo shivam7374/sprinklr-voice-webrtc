@@ -86,23 +86,13 @@ class MonitorWebRTC {
             }
             else if (event.currentTarget.connectionState === constants.CONNECTED) {
                 this.triggerHandler(constants.EVENT.CONNECTED);
+                this.connectedAtleastOnce = true;
             }
         });
     }
     // helper function to check if the connection is made at least once
     IsConnectedAtLeastOnce() {
-        if (this.connectedAtleastOnce === false) {
-            if (this.peerConnection.remoteDescription !== null) {
-                this.connectedAtleastOnce = true;
-                return true;
-            }
-            else {
-                return false;
-            }
-        }
-        else {
-            return true;
-        }
+        return this.connectedAtleastOnce;
     }
     // to check whether the connection exists with the remote peer
     checkIsConnection() {
@@ -520,7 +510,7 @@ class MonitorWebRTC {
         let flag = this.strikerPacketsSentPerSecondVideo.updateEventStrikes(category);
         if (flag === 1) {
             this.triggerHandler(constants.EVENT.LOW_PACKETS_SENT_VIDEO);
-            this.triggerHandler(constants.EVENT.REMOTE_PEER_VIDEO_STREAM_OFF);
+            this.triggerHandler(constants.EVENT.LOCAL_PEER_VIDEO_STREAM_OFF);
         }
         return category;
     }
@@ -537,10 +527,10 @@ class MonitorWebRTC {
         let flag = this.strikerPacketsReceivedPerSecondVideo.updateEventStrikes(category);
         if (flag === 1) {
             this.triggerHandler(constants.EVENT.LOW_PACKETS_RECEIVED_VIDEO);
-            this.triggerHandler(constants.EVENT.LOCAL_PEER_VIDEO_STREAM_OFF);
+            this.triggerHandler(constants.EVENT.REMOTE_PEER_VIDEO_STREAM_OFF);
         }
         if (this.strikerPacketsReceivedPerSecondVideo.getStrikes() === 0) {
-            this.triggerHandler(constants.EVENT.LOCAL_PEER_VIDEO_STREAM_ON);
+            this.triggerHandler(constants.EVENT.REMOTE_PEER_VIDEO_STREAM_ON);
         }
         return category;
     }
@@ -790,9 +780,9 @@ const PACKETS_SENT_OUTBOUND_THRESHOLD_ICE = { THRESHOLD: 10 };
 const PACKETS_RECEIVED_OUTBOUND_THRESHOLD_ICE = { THRESHOLD: 10 };
 const EVENT = {
     SLOW_CONNECTION: "SLOW_CONNECTION",
-    LOCAL_PEER_VIDEO_STREAM_OFF: "LOCAL_PEER_VIDEO_STREAM_OFF",
-    LOCAL_PEER_VIDEO_STREAM_ON: "LOCAL_PEER_VIDEO_STREAM_ON",
     REMOTE_PEER_VIDEO_STREAM_OFF: "REMOTE_PEER_VIDEO_STREAM_OFF",
+    REMOTE_PEER_VIDEO_STREAM_ON: "REMOTE_PEER_VIDEO_STREAM_ON",
+    LOCAL_PEER_VIDEO_STREAM_OFF: "LOCAL_PEER_VIDEO_STREAM_OFF",
     LOW_AUDIO: "LOW_AUDIO",
     NO_CONNECTION: "NO_CONNECTION",
     LOW_PACKETS_SENT: "LOW_PACKETS_SENT",
@@ -1044,8 +1034,8 @@ let Monitor = require("monitor-webrtc-connection");
 let CONFIGURABLE_PARAMETERS = {
 	SAMPLING_TIME_PERIOD: 1000,
 	REPORT_MAX_LENGTH: 500,
-	EVENT_EMIT_TIME_PERIOD: 3000,
-	STRIKES_THRESHOLD: 3,
+	EVENT_EMIT_TIME_PERIOD: 5000,
+	STRIKES_THRESHOLD: 5,
 	LOGGER_FUNCTION: console.log,
 };
 // creating new MonitorWebRTC instance
@@ -1054,15 +1044,15 @@ monitor.eventEmitter.on("LOW_AUDIO", function () {
 	notifyInfo("Info ", "Are you speaking? Your audio is quite low.");
 });
 
-monitor.eventEmitter.on("INPUT_VIDEO_STREAM_OFF", function () {
+monitor.eventEmitter.on("REMOTE_PEER_VIDEO_STREAM_OFF", function () {
 	if (remoteCameraStatus === true) {
-		notifyOnOffState("Info ", "Remote Peer has turned off camera.");
+		notifyOnOffState("Info ", "Remote Peer Video Quality very low/has turned off camera.");
 	}
 	remoteCameraStatus = false;
 });
-monitor.eventEmitter.on("INPUT_VIDEO_STREAM_ON", function () {
+monitor.eventEmitter.on("REMOTE_PEER_VIDEO_STREAM_ON", function () {
 	if (remoteCameraStatus === false) {
-		notifySuccess("Info ", "Remote Peer has turned on camera.");
+		notifySuccess("Info ", "Remote Peer Video Quality Improved/has turned on camera.");
 	}
 	remoteCameraStatus = true;
 });

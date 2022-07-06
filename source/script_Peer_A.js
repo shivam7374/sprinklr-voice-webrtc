@@ -164,8 +164,8 @@ let Monitor = require("monitor-webrtc-connection");
 let CONFIGURABLE_PARAMETERS = {
 	SAMPLING_TIME_PERIOD: 1000,
 	REPORT_MAX_LENGTH: 500,
-	EVENT_EMIT_TIME_PERIOD: 3000,
-	STRIKES_THRESHOLD: 3,
+	EVENT_EMIT_TIME_PERIOD: 5000,
+	STRIKES_THRESHOLD: 5,
 	LOGGER_FUNCTION: console.log,
 };
 // creating new MonitorWebRTC instance
@@ -174,15 +174,15 @@ monitor.eventEmitter.on("LOW_AUDIO", function () {
 	notifyInfo("Info ", "Are you speaking? Your audio is quite low.");
 });
 
-monitor.eventEmitter.on("INPUT_VIDEO_STREAM_OFF", function () {
+monitor.eventEmitter.on("REMOTE_PEER_VIDEO_STREAM_OFF", function () {
 	if (remoteCameraStatus === true) {
-		notifyOnOffState("Info ", "Remote Peer has turned off camera.");
+		notifyOnOffState("Info ", "Remote Peer Video Quality very low/has turned off camera.");
 	}
 	remoteCameraStatus = false;
 });
-monitor.eventEmitter.on("INPUT_VIDEO_STREAM_ON", function () {
+monitor.eventEmitter.on("REMOTE_PEER_VIDEO_STREAM_ON", function () {
 	if (remoteCameraStatus === false) {
-		notifySuccess("Info ", "Remote Peer has turned on camera.");
+		notifySuccess("Info ", "Remote Peer Video Quality Improved/has turned on camera.");
 	}
 	remoteCameraStatus = true;
 });
