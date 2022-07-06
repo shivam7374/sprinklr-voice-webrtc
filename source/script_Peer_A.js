@@ -134,9 +134,9 @@ document.getElementById("audio-pause-button").addEventListener("click", () => {
 	}
 });
 function toggleMediaOptionButtonColor(element) {
-	if (element.style.backgroundColor == "#ff4646" || element.style.backgroundColor == hexToRGB("#ff4646"))
-		element.style.backgroundColor = "#49b568";
-	else element.style.backgroundColor = "#ff4646";
+	if (element.style.backgroundColor == "#ea4335" || element.style.backgroundColor == hexToRGB("#ea4335"))
+		element.style.backgroundColor = "#000";
+	else element.style.backgroundColor = "#ea4335";
 }
 function hexToRGB(h) {
 	let r = 0,
